@@ -30,6 +30,8 @@
 ;; * Setup
 ;;
 
+(require 'eshell)
+
 (defcustom ydl4e-music-folder
   (expand-file-name "~/music")
   "Folder where music will be downloaded"
@@ -78,6 +80,40 @@ EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
   "Add new field in the list of folders `ydl4e-download-types'."
   (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
+
+(defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
+  "Run youtube-dl in a new eshell buffer.
+
+URL is the url of the video to download. DESTINATION-FOLDER is
+the folder where the video will be downloaded. FILENAME is the
+relative path (from DESTINATION-FOLDER) of the output file.
+
+EXTRA-YDL-ARGS is an optional argument.
+
+This opration is asynchronous."
+
+  (let ((eshell-buffer-name "*youtube-dl*"))
+    (split-window-right)
+    (windmove-right)
+    (eshell)
+    (when (eshell-interactive-process)
+      (eshell t))
+    (eshell-interrupt-process)
+    (insert (format "cd '%s' && youtube-dl " destination-folder)
+            url
+            " --restrict-filenames"
+            " -o " filename)
+    (when extra-ydl-args
+      (insert " " extra-ydl-args))
+    (eshell-send-input)
+    (windmove-left)))
+
+(defun ydl4e-run-youtube-dl-sync(url absolute-filename &optional extra-ydl-args)
+  (let ((error-message (with-temp-buffer
+                         (call-process "youtube-dl" nil t nil url "-o" absolute-filename)
+                         (buffer-string))))
+    (when (string-match-p "ERROR" error-message)
+      error-message)))
 
 
 (provide 'ydl4e)
