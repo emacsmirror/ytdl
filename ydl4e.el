@@ -115,6 +115,13 @@ This opration is asynchronous."
     (when (string-match-p "ERROR" error-message)
       error-message)))
 
+(defun ydl4e-get-default-filename (url)
+  (with-temp-buffer
+    (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
+    (beginning-of-buffer)
+    (search-forward ".")
+    (buffer-substring-no-properties (line-beginning-position)
+                                    (1- (point)))))
 
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
