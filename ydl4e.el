@@ -60,6 +60,25 @@
   :group 'ydl4
   :type '(string))
 
+(defvar ydl4e-download-types
+  '(("Downloads" "d" ydl4e-download-folder (concat "--recode-video " ydl4e-video-format))
+    ("Music"  "m" ydl4e-music-folder (concat "-x --audio-format " ydl4e-audio-format))
+    ("Videos" "v"  ydl4e-video-folder (concat "-x --audio-format " ydl4e-audio-format)))
+  "List of destination folders.
+
+Each element is a list '(FIELD-NAME SHORTCUT ABSOLUTE-PATH-TO-FOLDER EXTRA-COMMAND-LINE-ARGS)
+where:
+FIELD-NAME is a string;
+SHORTCUT is a string (only one character);
+ABSOLUTE-PATH-TO-FOLDER is the absolute path to the given folder;
+EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
+
+
+(defun ydl4e-add-field-in-folder-list (field-name keyboard-shortcut path-to-folder extra-args)
+  "Add new field in the list of folders `ydl4e-download-types'."
+  (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
+
+
 
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
