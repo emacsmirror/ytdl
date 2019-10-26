@@ -123,5 +123,37 @@ This opration is asynchronous."
     (buffer-substring-no-properties (line-beginning-position)
                                     (1- (point)))))
 
+(defun ydl4e-get-download-type()
+  "Query download type in mini-buffer.
+
+User can choose candidates from the elements of
+`ydl4e-download-types' whose ABSOLUTE-PATH-TO-FOLDER is not nil.
+
+Returns (destination-folder extra-args)."
+
+  (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
+                                              (mapconcat (lambda(x)
+                                                           (when (nth 2 x)
+                                                             (let* ((destination (nth 0 x))
+                                                                    (letter-shortcut (nth 1 x)))
+                                                               (concat (propertize " " 'face 'default)
+                                                                       (propertize destination 'face 'default)
+                                                                       (propertize " [" 'face 'default)
+                                                                       (propertize letter-shortcut 'face 'font-lock-warning-face)
+                                                                       (propertize "] " 'face 'default)
+                                                                       ))))
+                                                         ydl4e-download-types
+                                                         ""))
+                                      (mapcar (lambda(x)
+                                                (when (nth 2 x)
+                                                  (let* ((destination (nth 0 x)))
+                                                    (aref (nth 1 x) 0))))
+                                              ydl4e-download-types))))
+    (mapcan (lambda(x)
+              (when (= (aref (nth 1 x) 0) user-input)
+                `(,(nth 2 x) ,(nth 3 x))))
+            ydl4e-download-types)))
+
+
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
