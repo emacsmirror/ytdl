@@ -48,6 +48,18 @@
   :group 'ydl4e
   :type '(string))
 
+(defcustom ydl4e-video-format
+  "mkv"
+  "Encoding format for videos."
+  :group 'ydl4
+  :type '(string))
+
+(defcustom ydl4e-audio-format
+  "mp3"
+  "Encoding format for audio."
+  :group 'ydl4
+  :type '(string))
+
 
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
