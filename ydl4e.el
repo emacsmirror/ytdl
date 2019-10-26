@@ -30,6 +30,23 @@
 ;; * Setup
 ;;
 
+(defcustom ydl4e-music-folder
+  (expand-file-name "~/music")
+  "Folder where music will be downloaded"
+  :group 'ydl4e
+  :type '(string))
+
+(defcustom ydl4e-video-folder
+  nil
+  "Folder where videos will be downloaded."
+  :group 'ydl4e
+  :type '(string))
+
+(defcustom ydl4e-download-folder
+  (expand-file-name "~/Downloads/test")
+  "Default folder for downloads."
+  :group 'ydl4e
+  :type '(string))
 
 
 (provide 'ydl4e)
