@@ -75,6 +75,14 @@ SHORTCUT is a string (only one character);
 ABSOLUTE-PATH-TO-FOLDER is the absolute path to the given folder;
 EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
 
+(defcustom ydl4e-always-ask-delete-confirmation
+  t
+  "whether to ask to delete the file."
+  :group 'ydl4e
+  :type 'boolean)
+
+(defvar ydl4e-last-downloaded-file-name
+  nil)
 
 (defun ydl4e-add-field-in-folder-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of folders `ydl4e-download-types'."
@@ -171,5 +179,39 @@ Returns (destination-folder extra-args)."
     (ydl4e-run-youtube-dl-eshell url destination-folder filename extra-ydl-args)
     (minibuffer-message (concat "Video will be downloaded:" (concat destination-folder "/" filename)))))
 
+
+(defun ydl4e-download-open(&optional url)
+  (interactive)
+  (let* ((url (or url
+                  (current-kill 0)))
+         (dl-type (ydl4e-get-download-type))
+         (destination-folder (if (symbolp (nth 0 dl-type))
+                                 (symbol-value (nth 0 dl-type))
+                               (nth 0 dl-type)))
+         (extra-ydl-args (eval (nth 1 dl-type)))
+         (default-filename (ydl4e-get-default-filename url))
+         (abs-filename (concat destination-folder
+                               "/"
+                               (read-from-minibuffer "Filename [no extension]: " default-filename))))
+    (ydl4e-run-youtube-dl-sync url
+                               abs-filename
+                               extra-ydl-args)
+    (setq ydl4e-last-downloaded-file-name abs-filename)
+    (if (require 'emms)
+        (emms-play-file (concat abs-filename ".mkv"))
+      (minibuffer-message "emms is not installed!"))))
+
+
+(defun ydl4e-delete-last-downloaded-file ()
+  (interactive)
+  (if ydl4e-always-ask-delete-confirmation
+      (when (= ?y (read-char-choice (concat "Are you sure you want to delete the file '"
+                                            ydl4e-last-downloaded-file-name
+                                            "'"
+                                            "? [y/n]") '(?y?n)))
+        (delete-file ydl4e-last-downloaded-file-name)
+        (minibuffer-message "Deleting file..."))
+    (delete-file ydl4e-last-downloaded-file-name)
+    (minibuffer-message "Deleting file...")))
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
