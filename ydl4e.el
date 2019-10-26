@@ -155,5 +155,21 @@ Returns (destination-folder extra-args)."
             ydl4e-download-types)))
 
 
+(defun ydl4e-download (&optional url destination-folder extra-ydl-args)
+  (interactive)
+  (let* ((url (or url
+                  (current-kill 0)))
+         (dl-type (ydl4e-get-download-type))
+         (destination-folder (or destination-folder
+                                 (if (symbolp (nth 0 dl-type))
+                                     (symbol-value (nth 0 dl-type))
+                                   (nth 0 dl-type))))
+         (extra-ydl-args (or extra-ydl-args
+                             (eval (nth 1 dl-type))))
+         (default-filename (ydl4e-get-default-filename url))
+         (filename (read-from-minibuffer "Filename [Default]: " default-filename)))
+    (ydl4e-run-youtube-dl-eshell url destination-folder filename extra-ydl-args)
+    (minibuffer-message (concat "Video will be downloaded:" (concat destination-folder "/" filename)))))
+
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
