@@ -188,7 +188,7 @@ of youtube-dl."
                                               (mapconcat (lambda(x)
                                                            (when (nth 2 x)
                                                              (let ((destination (nth 0 x))
-                                                                   (letter-shortcut (nth 1 x)))
+                                                                   (letter-shortcut (ydl4e-eval-field (nth 1 x))))
                                                                (concat (propertize " " 'face 'default)
                                                                        (propertize destination 'face 'default)
                                                                        (propertize " [" 'face 'default)
@@ -198,7 +198,7 @@ of youtube-dl."
                                                          ""))
                                       (mapcar (lambda(x)
                                                 (when (nth 2 x)
-                                                  (aref (nth 1 x) 0)))
+                                                  (aref (ydl4e-eval-field(nth 1 x)) 0)))
                                               ydl4e-download-types))))
     (mapcan (lambda(x)
               (when (= (aref (ydl4e-eval-field (nth 1 x)) 0) user-input)
@@ -229,29 +229,38 @@ returns the value of the symbol."
 If URL is given as argument, then download file from URL.  Else
 download the file from the url stored in `current-ring'.
 
-Download the file in DESTINATION-FOLDER if provided.  Else, query
-the download type and use the assiciated destination folder.  See
+Download the file from URL and place it at
+ABSOLUTE-DESTINATION-PATH if provided.  Else, query the download
+type and use the associated destination folder.  See
 `ydl4e-add-field-in-download-type-list'.
 
 If provided, use EXTRA-YDL-ARGS as extra arguments for youtue-dl
-executable.  Else, query the download type, and use the
-associated extra arguments.  See `ydl4e-add-field-in-download-type-list'."
+executable.  ETXRA-YDL-ARGS is alist of strings.  Else, query the
+download type, and use the associated extra arguments.  See
+`ydl4e-add-field-in-download-type-list'."
   (interactive)
   (let* ((url (or url
                   (current-kill 0)))
-         (dl-type (when (not (and destination-folder
+         (dl-type (when (not (and absolute-destination-path
                                   extra-ydl-args))
                     (ydl4e-get-download-type)))
-         (destination-folder (or destination-folder
-                                 (if (symbolp (nth 0 dl-type))
-                                     (symbol-value (nth 0 dl-type))
-                                   (nth 0 dl-type))))
+         (filename (or absolute-destination-path
+                       (concat (ydl4e-eval-field (nth 0 dl-type))
+                               "/"
+                               (read-from-minibuffer "Filename [Default]: "
+                                                     (ydl4e-get-default-filename url)))))
          (extra-ydl-args (or extra-ydl-args
-                             (eval (nth 1 dl-type))))
-         (default-filename (ydl4e-get-default-filename url))
-         (filename (read-from-minibuffer "Filename [Default]: " default-filename)))
-    (ydl4e-run-youtube-dl-eshell url destination-folder filename extra-ydl-args)
-    (minibuffer-message (concat "Video will be downloaded:" (concat destination-folder "/" filename)))))
+                             (ydl4e-eval-list (nth 2 dl-type)))))
+    (ydl4e-run-youtube-dl-eshell url
+                                 (file-name-directory filename)
+                                 (file-name-nondirectory filename)
+                                 extra-ydl-args)
+    (setq ydl4e-last-downloaded-file-name (concat filename
+                                                  "."
+                                                  (ydl4e-eval-field(nth 1 dl-type))))
+    (minibuffer-message (concat "Video will be downloaded:" (concat filename
+                                                                    "."
+                                                                    (ydl4e-eval-field(nth 1 dl-type)))))))
 
 
 (defun ydl4e-download-open(&optional url)
@@ -263,20 +272,23 @@ download the file from the url stored in `current-ring'."
   (let* ((url (or url
                   (current-kill 0)))
          (dl-type (ydl4e-get-download-type))
-         (destination-folder (if (symbolp (nth 0 dl-type))
-                                 (symbol-value (nth 0 dl-type))
-                               (nth 0 dl-type)))
-         (extra-ydl-args (eval (nth 1 dl-type)))
+         (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
+         (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
          (default-filename (ydl4e-get-default-filename url))
+         (file-format (ydl4e-eval-field (nth 1 dl-type)))
          (abs-filename (concat destination-folder
                                "/"
                                (read-from-minibuffer "Filename [no extension]: " default-filename))))
     (ydl4e-run-youtube-dl-sync url
                                abs-filename
                                extra-ydl-args)
-    (setq ydl4e-last-downloaded-file-name abs-filename)
+    (setq ydl4e-last-downloaded-file-name (concat abs-filename
+                                                  "."
+                                                  file-format))
     (if (require 'emms)
-        (emms-play-file (concat abs-filename ".mkv"))
+        (emms-play-file (concat abs-filename
+                                "."
+                                file-format))
       (minibuffer-message "emms is not installed!"))))
 
 
