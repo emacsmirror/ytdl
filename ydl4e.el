@@ -157,7 +157,7 @@ EXTRA-YDL-ARGS is an optional argument.
 
 This opration is synchronous."
   (let ((error-message (with-temp-buffer
-                         (call-process "youtube-dl" nil t nil url "-o" absolute-filename extra-ydl-args)
+                         (apply #'call-process "youtube-dl" nil t nil url "-o" absolute-filename extra-ydl-args)
                          (buffer-string))))
     (when (string-match-p "ERROR" error-message)
       error-message)))
