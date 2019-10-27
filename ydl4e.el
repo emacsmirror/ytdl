@@ -97,8 +97,8 @@ EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
 (defvar ydl4e-last-downloaded-file-name
   nil)
 
-(defun ydl4e-add-field-in-folder-list (field-name keyboard-shortcut path-to-folder extra-args)
-  "Add new field in the list of folders `ydl4e-download-types'."
+(defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
+  "Add new field in the list of download types `ydl4e-download-types'."
   (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
