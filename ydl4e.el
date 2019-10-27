@@ -80,20 +80,21 @@
   :type '(string))
 
 (defvar ydl4e-download-types
-  '(("Downloads" "d" ydl4e-download-folder (concat "--recode-video " ydl4e-download-format))
-    ("Music"  "m" ydl4e-music-folder (concat "-x --audio-format " ydl4e-audio-format))
-    ("Videos" "v"  ydl4e-video-folder (concat "-x --audio-format " ydl4e-audio-format)))
+  '(("Downloads" "d" ydl4e-download-folder ydl4e-download-format ("--recode-video" ydl4e-download-format))
+    ("Music"  "m" ydl4e-music-folder ydl4e-audio-format ("-x" " --audio-format" ydl4e-audio-format))
+    ("Videos" "v"  ydl4e-video-folder ydl4e-video-format ("--recode-video " ydl4e-video-format)))
   "List of destination folders.
 
 Each element is a list '(FIELD-NAME SHORTCUT
-ABSOLUTE-PATH-TO-FOLDER EXTRA-COMMAND-LINE-ARGS) where:
+ABSOLUTE-PATH-TO-FOLDER FORMAT EXTRA-COMMAND-LINE-ARGS) where:
 FIELD-NAME is a string; SHORTCUT is a string (only one
 character); ABSOLUTE-PATH-TO-FOLDER is the absolute path to the
-given folder; EXTRA-COMMAND-LINE-ARGS is extra command line
+given folder; FILE-FORMAT is a file format accepted by
+youtube-dl;EXTRA-COMMAND-LINE-ARGS is extra command line
 arguments for youtube-dl.")
 
 (defcustom ydl4e-always-query-default-filename
-  t
+  nil
   "Whether to always query default-filename to youtube-dl.
 
  Note that this operation may take a few seconds."
@@ -109,14 +110,14 @@ arguments for youtube-dl.")
 (defvar ydl4e-last-downloaded-file-name
   nil)
 
-(defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
+(defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder file-format extra-args)
   "Add new field in the list of download types `ydl4e-download-types'.
 
-Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
+Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER FILE-FORMAT
 EXTRA-ARGS) to list ofdownload types.
 
 NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
-  (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
+  (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,file-format ,extra-args)))
 
 
 (defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
@@ -181,7 +182,7 @@ of youtube-dl."
   User can choose candidates from the elements of
   `ydl4e-download-types' whose ABSOLUTE-PATH-TO-FOLDER is not nil.
 
-  Returns (destination-folder extra-args)."
+  Returns (destination-folder file-format extra-args)."
 
   (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
                                               (mapconcat (lambda(x)
@@ -200,8 +201,8 @@ of youtube-dl."
                                                   (aref (nth 1 x) 0)))
                                               ydl4e-download-types))))
     (mapcan (lambda(x)
-              (when (= (aref (nth 1 x) 0) user-input)
-                `(,(nth 2 x) ,(nth 3 x))))
+              (when (= (aref (ydl4e-eval-field (nth 1 x)) 0) user-input)
+                `(,(nth 2 x) ,(nth 3 x) ,(nth 4 x))))
             ydl4e-download-types)))
 
 
