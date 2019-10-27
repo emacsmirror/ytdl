@@ -61,8 +61,14 @@
   :group 'ydl4
   :type '(string))
 
+(defcustom ydl4e-download-format
+  "mkv"
+  "Encoding format for generic downloads."
+  :group 'ydl4
+  :type '(string))
+
 (defvar ydl4e-download-types
-  '(("Downloads" "d" ydl4e-download-folder (concat "--recode-video " ydl4e-video-format))
+  '(("Downloads" "d" ydl4e-download-folder (concat "--recode-video " ydl4e-download-format))
     ("Music"  "m" ydl4e-music-folder (concat "-x --audio-format " ydl4e-audio-format))
     ("Videos" "v"  ydl4e-video-folder (concat "-x --audio-format " ydl4e-audio-format)))
   "List of destination folders.
