@@ -56,7 +56,7 @@
   :type '(string))
 
 (defcustom ydl4e-download-folder
-  (expand-file-name "~/Downloads/test")
+  (expand-file-name "~/Downloads")
   "Default folder for downloads."
   :group 'ydl4e
   :type '(string))
