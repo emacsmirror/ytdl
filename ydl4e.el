@@ -4,11 +4,10 @@
 
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
-;; URL:
-;; Package-Version:
-;; Version:
-;; Package-Requires:
-;; Keywords:
+;; URL: htpps://gitlab.com/tuedachu/ydl4e
+;; Version: 1.0.1
+;; Package-Requires: eshell, emms
+;; Keywords: youtube-dl
 
 ;; This file is not part of GNU Emacs.
 
@@ -223,5 +222,6 @@ Returns (destination-folder extra-args)."
         (minibuffer-message "Deleting file..."))
     (delete-file ydl4e-last-downloaded-file-name)
     (minibuffer-message "Deleting file...")))
+
 (provide 'ydl4e)
 ;;;ydl4e.el ends here
