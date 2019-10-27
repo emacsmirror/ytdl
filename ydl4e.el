@@ -1,12 +1,12 @@
 ;;; ydl4e.el --- Emacs Interface for youtube-dl -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019
+;; Copyright (C) 2019 Arnaud Hoffmann
 
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
-;; URL: htpps://gitlab.com/tuedachu/ydl4e
+;; URL: https://gitlab.com/tuedachu/ydl4e
 ;; Version: 1.0.1
-;; Package-Requires: eshell, emms
+;; Package-Requires: ((eshell "2.4.2") (emms "5.2"))
 ;; Keywords: youtube-dl
 
 ;; This file is not part of GNU Emacs.
