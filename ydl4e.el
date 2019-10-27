@@ -192,8 +192,7 @@ of youtube-dl."
                                                                        (propertize destination 'face 'default)
                                                                        (propertize " [" 'face 'default)
                                                                        (propertize letter-shortcut 'face 'font-lock-warning-face)
-                                                                       (propertize "] " 'face 'default)
-                                                                       ))))
+                                                                       (propertize "] " 'face 'default)))))
                                                          ydl4e-download-types
                                                          ""))
                                       (mapcar (lambda(x)
