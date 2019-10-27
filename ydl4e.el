@@ -75,6 +75,14 @@ SHORTCUT is a string (only one character);
 ABSOLUTE-PATH-TO-FOLDER is the absolute path to the given folder;
 EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
 
+(defcustom ydl4e-always-query-default-filename
+  t
+  "If non-nil, then the default-filename will always be queried
+  to youtueb-dl (--get-filename'). Note that this operation may
+  take a few seconds."
+  :group 'ydl4e
+  :type 'boolean)
+
 (defcustom ydl4e-always-ask-delete-confirmation
   t
   "whether to ask to delete the file."
@@ -124,12 +132,14 @@ This opration is asynchronous."
       error-message)))
 
 (defun ydl4e-get-default-filename (url)
-  (with-temp-buffer
-    (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
-    (beginning-of-buffer)
-    (search-forward ".")
-    (buffer-substring-no-properties (line-beginning-position)
-                                    (1- (point)))))
+  (if ydl4e-always-query-default-filename
+      (with-temp-buffer
+        (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
+        (beginning-of-buffer)
+        (search-forward ".")
+        (buffer-substring-no-properties (line-beginning-position)
+                                        (1- (point))))
+    nil))
 
 (defun ydl4e-get-download-type()
   "Query download type in mini-buffer.
