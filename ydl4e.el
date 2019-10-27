@@ -205,8 +205,25 @@ of youtube-dl."
                 `(,(nth 2 x) ,(nth 3 x) ,(nth 4 x))))
             ydl4e-download-types)))
 
+(defun ydl4e-eval-field (field)
+  "Return the value of FIELD.
 
-(defun ydl4e-download (&optional url destination-folder extra-ydl-args)
+Test whether FIELD is a symbol.  If it is a symbol, returns the
+value of the symbol."
+  (if (symbolp field)
+      (symbol-value field)
+    field))
+
+(defun ydl4e-eval-list (list)
+  "Evaluate all elements of LIST.
+
+Test whether each element is a symbol.  If it is a symbol,
+returns the value of the symbol."
+  (mapcar (lambda(arg)
+            (ydl4e-eval-field arg))
+          list))
+
+(defun ydl4e-download (&optional url absolute-destination-path extra-ydl-args)
   "Download file from a web server using youtube-dl.
 
 If URL is given as argument, then download file from URL.  Else
