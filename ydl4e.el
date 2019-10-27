@@ -6,8 +6,8 @@
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ydl4e
 ;; Version: 1.0.1
-;; Package-Requires: ((eshell "2.4.2") (emms "5.2"))
-;; Keywords: youtube-dl
+;; Package-Requires: ((emacs "24.1") (emms "5.2"))
+;; Keywords: comm, emulations, multimedia
 
 ;; This file is not part of GNU Emacs.
 
@@ -45,7 +45,7 @@
 
 (defcustom ydl4e-music-folder
   (expand-file-name "~/music")
-  "Folder where music will be downloaded"
+  "Folder where music will be downloaded."
   :group 'ydl4e
   :type '(string))
 
@@ -85,24 +85,24 @@
     ("Videos" "v"  ydl4e-video-folder (concat "-x --audio-format " ydl4e-audio-format)))
   "List of destination folders.
 
-Each element is a list '(FIELD-NAME SHORTCUT ABSOLUTE-PATH-TO-FOLDER EXTRA-COMMAND-LINE-ARGS)
-where:
-FIELD-NAME is a string;
-SHORTCUT is a string (only one character);
-ABSOLUTE-PATH-TO-FOLDER is the absolute path to the given folder;
-EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
+Each element is a list '(FIELD-NAME SHORTCUT
+ABSOLUTE-PATH-TO-FOLDER EXTRA-COMMAND-LINE-ARGS) where:
+FIELD-NAME is a string; SHORTCUT is a string (only one
+character); ABSOLUTE-PATH-TO-FOLDER is the absolute path to the
+given folder; EXTRA-COMMAND-LINE-ARGS is extra command line
+arguments for youtube-dl.")
 
 (defcustom ydl4e-always-query-default-filename
   t
-  "If non-nil, then the default-filename will always be queried
-  to youtueb-dl (--get-filename'). Note that this operation may
-  take a few seconds."
+  "Whether to always query default-filename to youtube-dl.
+
+ Note that this operation may take a few seconds."
   :group 'ydl4e
   :type 'boolean)
 
 (defcustom ydl4e-always-ask-delete-confirmation
   t
-  "whether to ask to delete the file."
+  "Whether to ask for confirmation when deleting a file."
   :group 'ydl4e
   :type 'boolean)
 
@@ -110,15 +110,20 @@ EXTRA-COMMAND-LINE-ARGS is extra command line arguments for youtube-dl.")
   nil)
 
 (defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
-  "Add new field in the list of download types `ydl4e-download-types'."
+  "Add new field in the list of download types `ydl4e-download-types'.
+
+Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
+EXTRA-ARGS) to list ofdownload types.
+
+NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
   (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
 (defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
   "Run youtube-dl in a new eshell buffer.
 
-URL is the url of the video to download. DESTINATION-FOLDER is
-the folder where the video will be downloaded. FILENAME is the
+URL is the url of the video to download.  DESTINATION-FOLDER is
+the folder where the video will be downloaded.  FILENAME is the
 relative path (from DESTINATION-FOLDER) of the output file.
 
 EXTRA-YDL-ARGS is an optional argument.
@@ -142,6 +147,14 @@ This opration is asynchronous."
     (windmove-left)))
 
 (defun ydl4e-run-youtube-dl-sync(url absolute-filename &optional extra-ydl-args)
+  "Run youtube-dl in a new eshell buffer.
+
+URL is the url of the video to download.  ABSOLUTE-FILENAME is
+the absolute path where the file will be saved.
+
+EXTRA-YDL-ARGS is an optional argument.
+
+This opration is synchronous."
   (let ((error-message (with-temp-buffer
                          (call-process "youtube-dl" nil t nil url "-o" absolute-filename)
                          (buffer-string))))
@@ -149,6 +162,10 @@ This opration is asynchronous."
       error-message)))
 
 (defun ydl4e-get-default-filename (url)
+  "Get default filename from webserver.
+
+Query the dafult-filename of URL using '--get-filename' argument
+of youtube-dl."
   (if ydl4e-always-query-default-filename
       (with-temp-buffer
         (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
@@ -161,10 +178,10 @@ This opration is asynchronous."
 (defun ydl4e-get-download-type()
   "Query download type in mini-buffer.
 
-User can choose candidates from the elements of
-`ydl4e-download-types' whose ABSOLUTE-PATH-TO-FOLDER is not nil.
+  User can choose candidates from the elements of
+  `ydl4e-download-types' whose ABSOLUTE-PATH-TO-FOLDER is not nil.
 
-Returns (destination-folder extra-args)."
+  Returns (destination-folder extra-args)."
 
   (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
                                               (mapconcat (lambda(x)
@@ -191,6 +208,18 @@ Returns (destination-folder extra-args)."
 
 
 (defun ydl4e-download (&optional url destination-folder extra-ydl-args)
+  "Download file from a web server using youtube-dl.
+
+If URL is given as argument, then download file from URL.  Else
+download the file from the url stored in `current-ring'.
+
+Download the file in DESTINATION-FOLDER if provided.  Else, query
+the download type and use the assiciated destination folder.  See
+`ydl4e-add-field-in-download-type-list'.
+
+If provided, use EXTRA-YDL-ARGS as extra arguments for youtue-dl
+executable.  Else, query the download type, and use the
+associated extra arguments.  See `ydl4e-add-field-in-download-type-list'."
   (interactive)
   (let* ((url (or url
                   (current-kill 0)))
@@ -210,6 +239,10 @@ Returns (destination-folder extra-args)."
 
 
 (defun ydl4e-download-open(&optional url)
+  "Download file from a web server using youtube-dl and open it in `emms'.
+
+If URL is given as argument, then download file from URL.  Else
+download the file from the url stored in `current-ring'."
   (interactive)
   (let* ((url (or url
                   (current-kill 0)))
@@ -232,6 +265,7 @@ Returns (destination-folder extra-args)."
 
 
 (defun ydl4e-delete-last-downloaded-file ()
+  "Delete the last file downloaded though ydl4e."
   (interactive)
   (if ydl4e-always-ask-delete-confirmation
       (when (= ?y (read-char-choice (concat "Are you sure you want to delete the file '"
@@ -244,4 +278,4 @@ Returns (destination-folder extra-args)."
     (minibuffer-message "Deleting file...")))
 
 (provide 'ydl4e)
-;;;ydl4e.el ends here
+;;; ydl4e.el ends here
