@@ -182,7 +182,9 @@ Returns (destination-folder extra-args)."
   (interactive)
   (let* ((url (or url
                   (current-kill 0)))
-         (dl-type (ydl4e-get-download-type))
+         (dl-type (when (not (and destination-folder
+                                  extra-ydl-args))
+                    (ydl4e-get-download-type)))
          (destination-folder (or destination-folder
                                  (if (symbolp (nth 0 dl-type))
                                      (symbol-value (nth 0 dl-type))
