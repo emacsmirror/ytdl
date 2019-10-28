@@ -127,7 +127,8 @@ URL is the url of the video to download.  DESTINATION-FOLDER is
 the folder where the video will be downloaded.  FILENAME is the
 relative path (from DESTINATION-FOLDER) of the output file.
 
-EXTRA-YDL-ARGS is an optional argument.
+Optional argument EXTRA-YDL-ARGS is the list of extra arguments
+to youtube-dl.
 
 This opration is asynchronous."
 
@@ -153,7 +154,8 @@ This opration is asynchronous."
 URL is the url of the video to download.  ABSOLUTE-FILENAME is
 the absolute path where the file will be saved.
 
-EXTRA-YDL-ARGS is an optional argument.
+Optional argument EXTRA-YDL-ARGS is the list of extra arguments
+to youtube-dl.
 
 This opration is synchronous."
   (let ((error-message (with-temp-buffer
