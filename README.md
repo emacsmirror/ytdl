@@ -62,7 +62,7 @@ To add a new download type, use `ydl4e-add-field-in-download-type-list`. This fu
 ### Additional Customization
 
 - By default, functions `ydl4e-download-open` and `ydl4e-download` will query the default filename. This operation can take a few seconds (depending on the web server). To omit this query, add in your `init.el`:
-```elips
+```elisp
 (setq ydl4e-always-query-default-filename nil)
 ```
 
