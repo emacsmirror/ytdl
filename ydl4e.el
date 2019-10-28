@@ -143,7 +143,7 @@ This opration is asynchronous."
             " --restrict-filenames"
             " -o " filename)
     (when extra-ydl-args
-      (insert " " extra-ydl-args))
+      (insert " " (mapconcat 'identity extra-ydl-args " ")))
     (eshell-send-input)
     (windmove-left)))
 
