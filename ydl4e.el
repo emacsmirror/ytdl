@@ -135,8 +135,9 @@ This opration is asynchronous."
     (eshell-interrupt-process)
     (insert (format "cd '%s' && youtube-dl " destination-folder)
             url
-            " --restrict-filenames"
-            " -o " filename)
+            " -o " (concat
+                    filename
+                    ".%(ext)s"))
     (when extra-ydl-args
       (insert " " (mapconcat 'identity extra-ydl-args " ")))
     (eshell-send-input)
@@ -153,7 +154,10 @@ to youtube-dl.
 
 This opration is synchronous."
   (let ((error-message (with-temp-buffer
-                         (apply #'call-process "youtube-dl" nil t nil url "-o" absolute-filename extra-ydl-args)
+                         (apply #'call-process "youtube-dl" nil t nil url
+                                "-o" (concat absolute-filename
+                                             ".%(ext)s")
+                                extra-ydl-args)
                          (buffer-string))))
     (when (string-match-p "ERROR" error-message)
       error-message)))
