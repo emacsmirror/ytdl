@@ -223,6 +223,37 @@ returns the value of the symbol."
             (ydl4e-eval-field arg))
           list))
 
+(defun ydl4e-get-filename (destination-folder url)
+  "Query a filename in mini-buffer.
+
+If `ydl4e-always-query-default-filename' is t, then the default
+value in the mini-buffer is the default filename of the URL.
+
+Returns a valid string:
+- no '/' in the filename
+- The filename does not exist yet in DESTINATION-FOLDER."
+
+  (let* ((prompt "Filename [no extension]: ")
+         (default-filename (ydl4e-get-default-filename url))
+         (filename (read-from-minibuffer prompt
+                                         default-filename)))
+    (while (or (search "/" filename)
+               (and (file-exists-p destination-folder)
+                    (let ((filename-completed (file-name-completion filename destination-folder)))
+                      (when filename-completed
+                        (string= (file-name-nondirectory filename)
+                                 (substring filename-completed
+                                            0
+                                            (search "." filename-completed)))))))
+      (minibuffer-message (if (search "/" filename)
+                              "Filename cannot contain '/'!"
+                            "Filename already exist in the destination folder (eventually with a different extension)!"))
+      (setq filename (read-from-minibuffer prompt
+                                           default-filename)))
+    (setq filename (concat destination-folder
+                           "/"
+                           filename))))
+
 (defun ydl4e-download (&optional url absolute-destination-path extra-ydl-args)
   "Download file from a web server using youtube-dl.
 
