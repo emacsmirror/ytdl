@@ -61,23 +61,8 @@
   :group 'ydl4e
   :type '(string))
 
-(defcustom ydl4e-video-format
-  "mkv"
-  "Encoding format for videos."
-  :group 'ydl4
-  :type '(string))
 
-(defcustom ydl4e-audio-format
-  "mp3"
-  "Encoding format for audio."
-  :group 'ydl4
-  :type '(string))
 
-(defcustom ydl4e-download-format
-  "mkv"
-  "Encoding format for generic downloads."
-  :group 'ydl4
-  :type '(string))
 
 (defvar ydl4e-download-types
   '(("Downloads" "d" ydl4e-download-folder ydl4e-download-format ("--recode-video" ydl4e-download-format))
