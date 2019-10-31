@@ -254,6 +254,23 @@ Returns a valid string:
                            "/"
                            filename))))
 
+(defun ydl4e-destination-folder-exist? (destination-folder)
+  "Test if DESTINATION-FOLDER exists.
+
+If DESTINATION-FOLDER exists, then returns t.
+
+Else, query user if DESTINATION-FOLDER should be created. If so,
+creates DESTINATION-FOLDER and returns t. Else, returns nil."
+  (if (file-exists-p destination-folder)
+      t
+    (if (y-or-n-p (concat "Directory '"
+                          destination-folder
+                          "' does not exist. Do you want to create it?"))
+        (progn
+          (make-directory destination-folder)
+          t)
+      (minibuffer-message "Operation aborted..."))))
+
 (defun ydl4e-download (&optional url absolute-destination-path extra-ydl-args)
   "Download file from a web server using youtube-dl.
 
