@@ -43,9 +43,9 @@
 
 (require 'eshell)
 
-(defvar ydl4-version
+(defvar ydl4e-version
   "1.1.0"
-  "ydl4e version.")
+  "Version of ydl4e.")
 
 (defcustom ydl4e-music-folder
   nil
@@ -263,7 +263,7 @@ Returns a valid string:
 
 If DESTINATION-FOLDER exists, then returns t.
 
-Else, query user if DESTINATION-FOLDER should be created. If so,
+Else, query user if DESTINATION-FOLDER should be created.  If so,
 creates DESTINATION-FOLDER and returns t. Else, returns nil."
   (if (file-exists-p destination-folder)
       t
