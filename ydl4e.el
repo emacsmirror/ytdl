@@ -292,23 +292,18 @@ download type, and use the associated extra arguments.  See
          (dl-type (when (not (and absolute-destination-path
                                   extra-ydl-args))
                     (ydl4e-get-download-type)))
+         (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (filename (or absolute-destination-path
-                       (concat (ydl4e-eval-field (nth 0 dl-type))
-                               "/"
-                               (read-from-minibuffer "Filename [Default]: "
-                                                     (ydl4e-get-default-filename url)))))
+                       (ydl4e-get-filename  destination-folder url)))
          (extra-ydl-args (or extra-ydl-args
-                             (ydl4e-eval-list (nth 2 dl-type)))))
-    (ydl4e-run-youtube-dl-eshell url
-                                 (file-name-directory filename)
-                                 (file-name-nondirectory filename)
-                                 extra-ydl-args)
-    (setq ydl4e-last-downloaded-file-name (concat filename
-                                                  "."
-                                                  (ydl4e-eval-field(nth 1 dl-type))))
-    (minibuffer-message (concat "Video will be downloaded:" (concat filename
-                                                                    "."
-                                                                    (ydl4e-eval-field(nth 1 dl-type)))))))
+                             (ydl4e-eval-list (nth 2 dl-type))))
+         (run-youtube-dl? nil))
+    (setq run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder))
+    (when run-youtube-dl?
+      (ydl4e-run-youtube-dl-eshell url
+                                   (file-name-directory filename)
+                                   (file-name-nondirectory filename)
+                                   extra-ydl-args))))
 
 
 (defun ydl4e-download-open(&optional url)
@@ -322,22 +317,23 @@ download the file from the url stored in `current-ring'."
          (dl-type (ydl4e-get-download-type))
          (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
-         (default-filename (ydl4e-get-default-filename url))
-         (file-format (ydl4e-eval-field (nth 1 dl-type)))
-         (abs-filename (concat destination-folder
-                               "/"
-                               (read-from-minibuffer "Filename [no extension]: " default-filename))))
-    (ydl4e-run-youtube-dl-sync url
-                               abs-filename
-                               extra-ydl-args)
-    (setq ydl4e-last-downloaded-file-name (concat abs-filename
-                                                  "."
-                                                  file-format))
-    (if (require 'emms)
-        (emms-play-file (concat abs-filename
-                                "."
-                                file-format))
-      (minibuffer-message "emms is not installed!"))))
+         (abs-filename (ydl4e-get-filename destination-folder url))
+         (run-youtube-dl? nil))
+    (setq run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder))
+    (when run-youtube-dl?
+      (ydl4e-run-youtube-dl-sync url
+                                 abs-filename
+                                 extra-ydl-args)
+      (setq ydl4e-last-downloaded-file-name (concat destination-folder
+                                                    "/"
+                                                    (file-name-completion (file-name-nondirectory abs-filename)
+                                                                          destination-folder)))
+      (minibuffer-message (concat "Opening file "
+                                  (file-name-completion (file-name-nondirectory abs-filename)
+                                                        destination-folder)))
+      (if (require 'emms)
+          (emms-play-file ydl4e-last-downloaded-file-name)
+        (minibuffer-message "emms is not installed!")))))
 
 
 (defun ydl4e-delete-last-downloaded-file ()
