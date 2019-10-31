@@ -74,9 +74,9 @@
   "Default extra arguments for the default download type 'Videoss'.")
 
 (defvar ydl4e-download-types
-  '(("Downloads" "d" ydl4e-download-folder ydl4e-download-format ("--recode-video" ydl4e-download-format))
-    ("Music"  "m" ydl4e-music-folder ydl4e-audio-format ("-x" " --audio-format" ydl4e-audio-format))
-    ("Videos" "v"  ydl4e-video-folder ydl4e-video-format ("--recode-video " ydl4e-video-format)))
+  '(("Downloads" "d" ydl4e-download-folder ydl4-download-extra-args)
+    ("Music"  "m" ydl4e-music-folder ydl4e-music-extra-args)
+    ("Videos" "v"  ydl4e-video-folder ydl4-video-extra-args))
   "List of destination folders.
 
 Each element is a list '(FIELD-NAME SHORTCUT
@@ -104,14 +104,14 @@ arguments for youtube-dl.")
 (defvar ydl4e-last-downloaded-file-name
   nil)
 
-(defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder file-format extra-args)
+(defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of download types `ydl4e-download-types'.
 
-Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER FILE-FORMAT
+Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
 EXTRA-ARGS) to list ofdownload types.
 
 NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
-  (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,file-format ,extra-args)))
+  (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
 (defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
