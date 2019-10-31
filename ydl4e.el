@@ -186,23 +186,23 @@ of youtube-dl."
 
   (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
                                               (mapconcat (lambda(x)
-                                                           (when (nth 2 x)
+                                                           (when (ydl4e-eval-field (nth 2 x))
                                                              (let ((destination (nth 0 x))
                                                                    (letter-shortcut (ydl4e-eval-field (nth 1 x))))
-                                                               (concat (propertize " " 'face 'default)
-                                                                       (propertize destination 'face 'default)
-                                                                       (propertize " [" 'face 'default)
+                                                               (concat " "
+                                                                       destination
+                                                                       "["
                                                                        (propertize letter-shortcut 'face 'font-lock-warning-face)
-                                                                       (propertize "] " 'face 'default)))))
+                                                                       "]"))))
                                                          ydl4e-download-types
                                                          ""))
                                       (mapcar (lambda(x)
-                                                (when (nth 2 x)
+                                                (when (ydl4e-eval-field (nth 2 x))
                                                   (aref (ydl4e-eval-field(nth 1 x)) 0)))
                                               ydl4e-download-types))))
     (mapcan (lambda(x)
               (when (= (aref (ydl4e-eval-field (nth 1 x)) 0) user-input)
-                `(,(nth 2 x) ,(nth 3 x) ,(nth 4 x))))
+                `(,(nth 2 x) ,(nth 3 x))))
             ydl4e-download-types)))
 
 (defun ydl4e-eval-field (field)
