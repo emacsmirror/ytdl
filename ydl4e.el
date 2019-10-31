@@ -61,8 +61,17 @@
   :group 'ydl4e
   :type '(string))
 
+(defvar ydl4e-download-extra-args
+  nil
+  "Default extra arguments for the default download type 'Downloads'.")
 
+(defvar ydl4e-music-extra-args
+  '("-x" "--audio-format" "mp3")
+  "Default extra arguments for the default download type 'Music'.")
 
+(defvar ydl4e-video-extra-args
+  nil
+  "Default extra arguments for the default download type 'Videoss'.")
 
 (defvar ydl4e-download-types
   '(("Downloads" "d" ydl4e-download-folder ydl4e-download-format ("--recode-video" ydl4e-download-format))
