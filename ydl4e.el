@@ -44,7 +44,7 @@
 (require 'eshell)
 
 (defcustom ydl4e-music-folder
-  (expand-file-name "~/music")
+  nil
   "Folder where music will be downloaded."
   :group 'ydl4e
   :type '(string))
