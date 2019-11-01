@@ -6,7 +6,7 @@
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ydl4e
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "24.1") (emms "5.2"))
+;; Package-Requires: ((emacs "24.3") (emms "5.2"))
 ;; Keywords: comm, emulations, multimedia
 
 ;; This file is not part of GNU Emacs.
