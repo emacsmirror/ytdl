@@ -351,10 +351,10 @@ download the file from the url stored in `current-ring'."
   "Delete the last file downloaded though ydl4e."
   (interactive)
   (if ydl4e-always-ask-delete-confirmation
-      (when (= ?y (read-char-choice (concat "Are you sure you want to delete the file '"
-                                            ydl4e-last-downloaded-file-name
-                                            "'"
-                                            "? [y/n]") '(?y?n)))
+      (when (y-or-n-p (concat "Are you sure you want to delete the file '"
+                              ydl4e-last-downloaded-file-name
+                              "'"
+                              "?"))
         (delete-file ydl4e-last-downloaded-file-name)
         (minibuffer-message "Deleting file..."))
     (delete-file ydl4e-last-downloaded-file-name)
