@@ -59,6 +59,18 @@ To add a new download type, use `ydl4e-add-field-in-download-type-list`. This fu
 - `path-to-folder`: absolute path to destination folder;
 - `extra-args`: eventual extra arguments to youtube-dl for this download type.
 
+#### Example: Add a podcast download type
+
+To add a new download type callde "podcasts", add this to the
+configuration file:
+
+```elisp
+(ydl4e-add-field-in-download-type-list "Podcasts"
+"p"
+(expand-file-name "~/podcasts")
+'("x" "--audio-format" "mp3"))
+```
+
 ### Additional Customization
 
 - By default, functions `ydl4e-download-open` and `ydl4e-download` will query the default filename. This operation can take a few seconds (depending on the web server). To omit this query, add in your `init.el`:
