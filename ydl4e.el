@@ -339,11 +339,16 @@ download the file from the url stored in `current-ring'."
                                                     "/"
                                                     (file-name-completion (file-name-nondirectory abs-filename)
                                                                           destination-folder)))
-      (minibuffer-message (concat "Opening file "
-                                  (file-name-completion (file-name-nondirectory abs-filename)
-                                                        destination-folder)))
       (if (require 'emms)
-          (emms-play-file ydl4e-last-downloaded-file-name)
+          (if (and (emms-playlist-buffer-list)
+                   (y-or-n-p (concat "Do you want to add the file at the end of the current EMMS playlist <"
+                                     (buffer-name (car (emms-playlist-buffer-list)))
+                                     ">?")))
+              (ydl4e-add-file-to-current-playlist ydl4e-last-downloaded-file-name (car (emms-playlist-buffer-list)))
+            (emms-playlist-new "*EMMS youtube-dl Playlist*")
+            (ydl4e-add-file-to-current-playlist ydl4e-last-downloaded-file-name "*EMMS youtube-dl Playlist*")
+            (goto-char (point-min))
+            (emms-playlist-mode-play-smart))
         (minibuffer-message "emms is not installed!")))))
 
 
