@@ -241,15 +241,15 @@ Returns a valid string:
          (default-filename (ydl4e-get-default-filename url))
          (filename (read-from-minibuffer prompt
                                          default-filename)))
-    (while (or (search "/" filename)
+    (while (or (cl-search "/" filename)
                (and (file-exists-p destination-folder)
                     (let ((filename-completed (file-name-completion filename destination-folder)))
                       (when filename-completed
                         (string= (file-name-nondirectory filename)
                                  (substring filename-completed
                                             0
-                                            (search "." filename-completed)))))))
-      (minibuffer-message (if (search "/" filename)
+                                            (cl-search "." filename-completed)))))))
+      (minibuffer-message (if (cl-search "/" filename)
                               "Filename cannot contain '/'!"
                             "Filename already exist in the destination folder (eventually with a different extension)!"))
       (setq filename (read-from-minibuffer prompt
