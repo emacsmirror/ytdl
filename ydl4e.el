@@ -275,7 +275,14 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
           t)
       (minibuffer-message "Operation aborted..."))))
 
-(defun ydl4e-download (&optional url absolute-destination-path extra-ydl-args)
+(defun ydl4e-add-file-to-playlist (file playlist)
+  "Add FILE at the end of a given EMMS PLAYLIST."
+  (switch-to-buffer playlist)
+  (goto-char (max-char))
+  (emms-playlist-insert-track (emms-track 'file (expand-file-name file))))
+
+(defun ydl4e-download (&optional url absolute-destination-path
+                                 extra-ydl-args)
   "Download file from a web server using youtube-dl.
 
 If URL is given as argument, then download file from URL.  Else
