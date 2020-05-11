@@ -6,7 +6,7 @@
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ydl4e
 ;; Version: 1.1.1
-;; Package-Requires: ((emacs "24.3") (emms "5.2"))
+;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: comm, emulations, multimedia
 
 ;; This file is not part of GNU Emacs.
@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -141,9 +141,9 @@ This opration is asynchronous."
             url
             " -o " (concat
                     filename
-                    ".%(ext)s"))
-    (when extra-ydl-args
-      (insert " " (mapconcat 'identity extra-ydl-args " ")))
+                    ".%(ext)s")
+            (when extra-ydl-args
+              (insert " " (mapconcat #'identity extra-ydl-args " "))))
     (eshell-send-input)
     (windmove-left)))
 
@@ -300,8 +300,8 @@ download type, and use the associated extra arguments.  See
   (interactive)
   (let* ((url (or url
                   (current-kill 0)))
-         (dl-type (when (not (and absolute-destination-path
-                                  extra-ydl-args))
+         (dl-type (unless (and absolute-destination-path
+                               extra-ydl-args)
                     (ydl4e-get-download-type)))
          (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (filename (or absolute-destination-path
