@@ -43,9 +43,6 @@
 
 (require 'eshell)
 
-(setq global-mode-string (append global-mode-string
-                                 '("" ydl4e-mode-line-string)))
-
 (defvar ydl4e-version
   "1.1.0"
   "Version of ydl4e.")
@@ -138,9 +135,25 @@ Used by `ydl4e-download-open'."
 (defvar ydl4e-mode-line-string
   "")
 
+(defvar ydl4e-mode-line-initialized
+  nil)
+
 (defun ydl4e-eval-mode-line-string(increment)
   (setq ydl4e-download-in-progress (+ ydl4e-download-in-progress increment))
   (when ydl4e-mode-line
+    ;; Add `ydl4e-mode-line-string' to `global-mode-string' only if needed.
+    (unless ydl4e-mode-line-initialized
+      (let ((l global-mode-string)
+            (ydl4e-string-found nil))
+        (while (and (not ydl4e-string-found)
+                    l)
+          (when (equal (car l) ydl4e-mode-line-string)
+            (setq ydl4e-string-found t))
+          (setq l (cdr l)))
+        (unless ydl4e-string-found
+          (setq global-mode-string (append global-mode-string
+                                           '("" ydl4e-mode-line-string))
+                ydl4e-mode-line-initialized t))))
     (setq ydl4e-mode-line-string (if (> ydl4e-download-in-progress 0)
                                      (format "[ydl4e] downloading %s file(s)..." ydl4e-download-in-progress)
                                    ""))))
