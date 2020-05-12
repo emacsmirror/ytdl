@@ -203,12 +203,14 @@ This opration is asynchronous."
 Query the dafult-filename of URL using '--get-filename' argument
 of youtube-dl."
   (if ydl4e-always-query-default-filename
-      (with-temp-buffer
-        (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
-        (goto-char (point-min))
-        (search-forward ".")
-        (buffer-substring-no-properties (line-beginning-position)
-                                        (1- (point))))
+      (when (y-or-n-p (concat ydl4e-message-start
+                              "Do you want to query the default filename? (This might take a few seconds)"))
+        (with-temp-buffer
+          (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
+          (goto-char (point-min))
+          (search-forward ".")
+          (buffer-substring-no-properties (line-beginning-position)
+                                          (1- (point)))))
     nil))
 
 (defun ydl4e-get-download-type()
