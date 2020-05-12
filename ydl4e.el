@@ -197,25 +197,6 @@ This opration is asynchronous."
     (eshell-send-input)
     (windmove-left)))
 
-(defun ydl4e-run-youtube-dl-sync(url absolute-filename &optional extra-ydl-args)
-  "Run youtube-dl in a new eshell buffer.
-
-URL is the url of the video to download.  ABSOLUTE-FILENAME is
-the absolute path where the file will be saved.
-
-Optional argument EXTRA-YDL-ARGS is the list of extra arguments
-to youtube-dl.
-
-This opration is synchronous."
-  (let ((error-message (with-temp-buffer
-                         (apply #'call-process "youtube-dl" nil t nil url
-                                "-o" (concat absolute-filename
-                                             ".%(ext)s")
-                                extra-ydl-args)
-                         (buffer-string))))
-    (when (string-match-p "ERROR" error-message)
-      error-message)))
-
 (defun ydl4e-get-default-filename (url)
   "Get default filename from webserver.
 
