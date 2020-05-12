@@ -105,6 +105,11 @@ arguments for youtube-dl.")
   :group 'ydl4e
   :type 'boolean)
 
+(defcustom ydl4e-message-start
+  "[ydl4e] "
+  "String that starts all mini-buffer messages from `ydl4e'. Default value is '[ydl4e] '."
+  :group 'ydl4e
+  :type 'string)
 (defvar ydl4e-last-downloaded-file-name
   nil)
 
@@ -237,7 +242,8 @@ Returns a valid string:
 - no '/' in the filename
 - The filename does not exist yet in DESTINATION-FOLDER."
 
-  (let* ((prompt "Filename [no extension]: ")
+  (let* ((prompt (concat ydl4e-message-start
+                         "Filename [no extension]: "))
          (default-filename (ydl4e-get-default-filename url))
          (filename (read-from-minibuffer prompt
                                          default-filename)))
@@ -249,9 +255,10 @@ Returns a valid string:
                                  (substring filename-completed
                                             0
                                             (cl-search "." filename-completed)))))))
-      (minibuffer-message (if (cl-search "/" filename)
-                              "Filename cannot contain '/'!"
-                            "Filename already exist in the destination folder (eventually with a different extension)!"))
+      (minibuffer-message (concat ydl4e-message-start
+                                  (if (cl-search "/" filename)
+                                      "Filename cannot contain '/'!"
+                                    "Filename already exist in the destination folder (eventually with a different extension)!")))
       (setq filename (read-from-minibuffer prompt
                                            default-filename)))
     (setq filename (concat destination-folder
@@ -273,7 +280,8 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
         (progn
           (make-directory destination-folder)
           t)
-      (minibuffer-message "Operation aborted..."))))
+      (minibuffer-message (concat ydl4e-message-start
+                                  "Operation aborted...")))))
 
 (defun ydl4e-add-file-to-playlist (file playlist)
   "Add FILE at the end of a given EMMS PLAYLIST."
@@ -355,15 +363,15 @@ download the file from the url stored in `current-ring'."
 (defun ydl4e-delete-last-downloaded-file ()
   "Delete the last file downloaded though ydl4e."
   (interactive)
-  (if ydl4e-always-ask-delete-confirmation
-      (when (y-or-n-p (concat "Are you sure you want to delete the file '"
-                              ydl4e-last-downloaded-file-name
-                              "'"
-                              "?"))
-        (delete-file ydl4e-last-downloaded-file-name)
-        (minibuffer-message "Deleting file..."))
-    (delete-file ydl4e-last-downloaded-file-name)
-    (minibuffer-message "Deleting file...")))
+  (or ydl4e-always-ask-delete-confirmation
+      (y-or-n-p (concat ydl4e-message-start
+                        "Are you sure you want to delete the file '"
+                        ydl4e-last-downloaded-file-name
+                        "'"
+                        "?"))
+      (delete-file ydl4e-last-downloaded-file-name)
+      (minibuffer-message (concat ydl4e-message-start
+                                  "Deleting file..."))))
 
 (provide 'ydl4e)
 ;;; ydl4e.el ends here
