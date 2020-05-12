@@ -43,6 +43,9 @@
 
 (require 'eshell)
 
+(setq global-mode-string (append global-mode-string
+                                 '("" ydl4e-mode-line-string)))
+
 (defvar ydl4e-version
   "1.1.0"
   "Version of ydl4e.")
@@ -105,13 +108,42 @@ arguments for youtube-dl.")
   :group 'ydl4e
   :type 'boolean)
 
+(defcustom ydl4e-media-player
+  "mpv"
+  "Media player to use to open videos.
+
+Default is 'mpv'.
+Used by `ydl4e-download-open'."
+  :group 'ydl4e
+  :type 'string)
+
 (defcustom ydl4e-message-start
   "[ydl4e] "
   "String that starts all mini-buffer messages from `ydl4e'. Default value is '[ydl4e] '."
   :group 'ydl4e
   :type 'string)
+
+(defcustom ydl4e-mode-line
+  t
+  "Show `ydl4e' information in emacs mode line."
+  :group 'ydl4e
+  :type 'boolean)
+
 (defvar ydl4e-last-downloaded-file-name
   nil)
+
+(defvar ydl4e-download-in-progress
+  0)
+
+(defvar ydl4e-mode-line-string
+  "")
+
+(defun ydl4e-eval-mode-line-string(increment)
+  (setq ydl4e-download-in-progress (+ ydl4e-download-in-progress increment))
+  (when ydl4e-mode-line
+    (setq ydl4e-mode-line-string (if (> ydl4e-download-in-progress 0)
+                                     (format "[ydl4e] downloading %s file(s)..." ydl4e-download-in-progress)
+                                   ""))))
 
 (defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of download types `ydl4e-download-types'.
@@ -283,11 +315,6 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
       (minibuffer-message (concat ydl4e-message-start
                                   "Operation aborted...")))))
 
-(defun ydl4e-add-file-to-playlist (file playlist)
-  "Add FILE at the end of a given EMMS PLAYLIST."
-  (switch-to-buffer playlist)
-  (goto-char (max-char))
-  (emms-playlist-insert-track (emms-track 'file (expand-file-name file))))
 
 (defun ydl4e-download (&optional url absolute-destination-path
                                  extra-ydl-args)
@@ -336,29 +363,48 @@ download the file from the url stored in `current-ring'."
          (dl-type (ydl4e-get-download-type))
          (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
-         (abs-filename (ydl4e-get-filename destination-folder url))
+         (filename (ydl4e-get-filename destination-folder url))
          (run-youtube-dl? nil))
     (setq run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder))
+    (unless ydl4e-media-player
+      (minibuffer-message (concat ydl4e-message-start
+                                  "No media player is set up. See `ydl4e-media-player'.")))
+    (unless (executable-find ydl4e-media-player)
+      (minibuffer-message (concat ydl4e-message-start
+                                  "Program "
+                                  ydl4e-media-player
+                                  " does not exist. Operation aborted.")))
     (when run-youtube-dl?
-      (ydl4e-run-youtube-dl-sync url
-                                 abs-filename
-                                 extra-ydl-args)
-      (setq ydl4e-last-downloaded-file-name (concat destination-folder
-                                                    "/"
-                                                    (file-name-completion (file-name-nondirectory abs-filename)
-                                                                          destination-folder)))
-      (if (require 'emms)
-          (if (and (emms-playlist-buffer-list)
-                   (y-or-n-p (concat "Do you want to add the file at the end of the current EMMS playlist <"
-                                     (buffer-name (car (emms-playlist-buffer-list)))
-                                     ">?")))
-              (ydl4e-add-file-to-playlist ydl4e-last-downloaded-file-name (car (emms-playlist-buffer-list)))
-            (emms-playlist-new "*EMMS youtube-dl Playlist*")
-            (ydl4e-add-file-to-playlist ydl4e-last-downloaded-file-name "*EMMS youtube-dl Playlist*")
-            (goto-char (point-min))
-            (emms-playlist-mode-play-smart))
-        (minibuffer-message "emms is not installed!")))))
+      (ydl4e-eval-mode-line-string 1)
+      (async-start
+       (lambda ()
+         (with-temp-buffer
+           (apply #'call-process "youtube-dl" nil t nil url
+                  "-o" (concat filename
+                               ".%(ext)s")
+                  extra-ydl-args)
+           (let ((file-path nil)
+                 (youtube-dl-extensions
+                  '("3gp" "aac" "flv" "m4a" "mp3" "mp4" "ogg" "wav" "webm" "mkv")))
+             (while (and (not (when file-path
+                                (file-exists-p file-path)))
+                         youtube-dl-extensions)
+               (setq file-path (concat filename
+                                       "."
+                                       (car youtube-dl-extensions))
+                     youtube-dl-extensions (cdr youtube-dl-extensions)))
+             file-path)))
 
+       (lambda (result)
+         (setq ydl4e-last-downloaded-file-name result)
+         (ydl4e-eval-mode-line-string -1)
+         (message (concat ydl4e-message-start
+                          "Video downloaded: "
+                          result))
+         (start-process-shell-command ydl4e-media-player
+                                      nil
+                                      (concat "mpv "
+                                              result)))))))
 
 (defun ydl4e-delete-last-downloaded-file ()
   "Delete the last file downloaded though ydl4e."
