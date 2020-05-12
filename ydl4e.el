@@ -277,12 +277,14 @@ Returns a valid string:
                                          default-filename)))
     (while (or (cl-search "/" filename)
                (and (file-exists-p destination-folder)
-                    (let ((filename-completed (file-name-completion filename destination-folder)))
+                    (let ((filename-completed (file-name-completion
+                                               filename destination-folder)))
                       (when filename-completed
                         (string= (file-name-nondirectory filename)
                                  (substring filename-completed
                                             0
-                                            (cl-search "." filename-completed)))))))
+                                            (cl-search "."
+                                                       filename-completed)))))))
       (minibuffer-message (concat ydl4e-message-start
                                   (if (cl-search "/" filename)
                                       "Filename cannot contain '/'!"
@@ -311,10 +313,56 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
       (minibuffer-message (concat ydl4e-message-start
                                   "Operation aborted...")))))
 
+(defun ydl4e-open-file-in-media-player (filename)
+  "Open FILENAME in `ydl4e-media-player'."
+  (start-process-shell-command ydl4e-media-player
+                               nil
+                               (concat ydl4e-media-player
+                                       " "
+                                       filename)))
 
-(defun ydl4e-download (&optional url absolute-destination-path
-                                 extra-ydl-args)
-  "Download file from a web server using youtube-dl.
+(defun ydl4e-download-async (url filename extra-ydl-args finish-function)
+  "Asynchronously download URL into FILENAME.
+
+Extra arguments to youtube-dl can be provided with EXTRA-YDL-ARGS.
+
+FINISH-FUNCTION is a function that is executed once the file is
+downloaded. It takes a single argument (file-path)."
+  (ydl4e-eval-mode-line-string 1)
+  (async-start
+   (lambda ()
+     (apply #'call-process "youtube-dl" nil nil nil
+            url
+            "-o" (concat filename
+                         ".%(ext)s")
+            extra-ydl-args)
+     (let ((file-path nil)
+           (youtube-dl-extensions
+            '("3gp" "aac" "flv" "m4a" "mp3" "mp4" "ogg" "wav" "webm" "mkv")))
+       (while (and (not (when file-path
+                          (file-exists-p file-path)))
+                   youtube-dl-extensions)
+         (setq file-path (concat filename
+                                 "."
+                                 (car youtube-dl-extensions))
+               youtube-dl-extensions (cdr youtube-dl-extensions)))
+       file-path))
+
+   (lambda (file-path)
+     (ydl4e-async-download-finished file-path)
+     (funcall finish-function file-path))))
+
+(defun ydl4e-async-download-finished (filename)
+  (setq ydl4e-last-downloaded-file-name filename)
+  (ydl4e-eval-mode-line-string -1)
+  (message (concat ydl4e-message-start
+                   "Video downloaded: "
+                   filename)))
+
+
+(defun ydl4e-download-eshell (&optional url absolute-destination-path
+                                        extra-ydl-args)
+  "Download file from a web server using youtube-dl in eshell.
 
 If URL is given as argument, then download file from URL.  Else
 download the file from the url stored in `current-ring'.
@@ -348,8 +396,18 @@ download type, and use the associated extra arguments.  See
                                    extra-ydl-args))))
 
 
-(defun ydl4e-download-open(&optional url)
-  "Download file from a web server using youtube-dl and open it in `emms'.
+(defun ydl4e-download-async (&optional url)
+  "Download asynchronously file from a web server using youtube-dl.
+
+If URL is given as argument, then download file from URL.  Else
+download the file from the url stored in `current-ring'."
+  (interactive)
+  )
+
+
+
+(defun ydl4e-download-open (&optional url)
+  "Download file from a web server using youtube-dl and open it with `ydl4e-media-player'.
 
 If URL is given as argument, then download file from URL.  Else
 download the file from the url stored in `current-ring'."
@@ -369,38 +427,20 @@ download the file from the url stored in `current-ring'."
       (minibuffer-message (concat ydl4e-message-start
                                   "Program "
                                   ydl4e-media-player
-                                  " does not exist. Operation aborted.")))
+                                  " cannot be found. Operation aborted.")))
     (when run-youtube-dl?
-      (ydl4e-eval-mode-line-string 1)
-      (async-start
-       (lambda ()
-         (with-temp-buffer
-           (apply #'call-process "youtube-dl" nil t nil url
-                  "-o" (concat filename
-                               ".%(ext)s")
-                  extra-ydl-args)
-           (let ((file-path nil)
-                 (youtube-dl-extensions
-                  '("3gp" "aac" "flv" "m4a" "mp3" "mp4" "ogg" "wav" "webm" "mkv")))
-             (while (and (not (when file-path
-                                (file-exists-p file-path)))
-                         youtube-dl-extensions)
-               (setq file-path (concat filename
-                                       "."
-                                       (car youtube-dl-extensions))
-                     youtube-dl-extensions (cdr youtube-dl-extensions)))
-             file-path)))
+      (ydl4e-download-async url
+                            filename
+                            extra-ydl-args
+                            (lambda (file-path)
+                              (ydl4e-open-file-in-media-player file-path))))))
 
-       (lambda (result)
-         (setq ydl4e-last-downloaded-file-name result)
-         (ydl4e-eval-mode-line-string -1)
-         (message (concat ydl4e-message-start
-                          "Video downloaded: "
-                          result))
-         (start-process-shell-command ydl4e-media-player
-                                      nil
-                                      (concat "mpv "
-                                              result)))))))
+(defun ydl4e-open-last-downloaded-file ()
+  "Open the last downloaded file in `ydl4e-media-player'.
+
+The last downloaded file is stored in `ydl4e-last-downloaded-file-name'."
+  (interactive)
+  (ydl4e-open-file-in-media-player ydl4e-last-downloaded-file-name))
 
 (defun ydl4e-delete-last-downloaded-file ()
   "Delete the last file downloaded though ydl4e."
