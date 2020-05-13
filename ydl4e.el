@@ -116,13 +116,14 @@ Used by `ydl4e-download-open'."
 
 (defcustom ydl4e-message-start
   "[ydl4e] "
-  "String that starts all mini-buffer messages from `ydl4e'. Default value is '[ydl4e] '."
+  "String that starts all mini-buffer messages from `ydl4e'.
+Default value is '[ydl4e] '."
   :group 'ydl4e
   :type 'string)
 
 (defcustom ydl4e-mode-line
   t
-  "Show `ydl4e' information in emacs mode line."
+  "Show `ydl4e' information in EMACS mode line."
   :group 'ydl4e
   :type 'boolean)
 
@@ -140,13 +141,15 @@ Used by `ydl4e-download-open'."
 
 (defvar ydl4e-mode-line-initialized?
   nil
-  "Whether `ydl4e' has been initialized or not. See
-  `ydl4e-eval-mode-line-string'.")
+  "Whether `ydl4e' has been initialized or not.
+
+See `ydl4e-eval-mode-line-string'.")
 
 (defun ydl4e-eval-mode-line-string(increment)
   "Evaluate `ydl4e' global mode string.
 
-- Increment (or decrement) `ydl4e-download-in-progress'.
+- Increment (or decrement) `ydl4e-download-in-progress' based on
+INCREMENT value.
 - If needed, add `ydl4e-mode-line-string' to `global-mode-string'.
 - Update `ydl4e-mode-line-string'."
   (setq ydl4e-download-in-progress (+ ydl4e-download-in-progress increment))
@@ -332,13 +335,13 @@ Used by `ydl4e-download-open'."
                                        " "
                                        filename)))
 
-(defun ydl4e-download-async (url filename extra-ydl-args finish-function)
+(defun ydl4e-download-async (url filename extra-ydl-args &optional finish-function)
   "Asynchronously download URL into FILENAME.
 
   Extra arguments to youtube-dl can be provided with EXTRA-YDL-ARGS.
 
   FINISH-FUNCTION is a function that is executed once the file is
-  downloaded. It takes a single argument (file-path)."
+  downloaded.  It takes a single argument (file-path)."
   (ydl4e-eval-mode-line-string 1)
   (async-start
    (lambda ()
@@ -361,12 +364,15 @@ Used by `ydl4e-download-open'."
 
    (lambda (file-path)
      (ydl4e-async-download-finished file-path)
-     (funcall finish-function file-path))))
+     (when finish-function
+       (funcall finish-function file-path)))))
 
 (defun ydl4e-async-download-finished (filename)
   "Generic function run after download is completed.
 
-  See `ydl4e-download-async'."
+FILENAME is the absolute path of the file downloaded by
+  `ydl4e-download-async'.  See `ydl4e-download-async' for more
+  details."
   (setq ydl4e-last-downloaded-file-name filename)
   (ydl4e-eval-mode-line-string -1)
   (message (concat ydl4e-message-start
@@ -390,7 +396,7 @@ Used by `ydl4e-download-open'."
   "Download file from a web server using youtube-dl in eshell.
 
   Download the file from the provided url into the appropriate
-  folder location. Query the download type and use the associated
+  folder location.  Query the download type and use the associated
   destination folder and extra arguments, see
   `ydl4e-add-field-in-download-type-list'."
   (interactive)
@@ -417,12 +423,10 @@ Used by `ydl4e-download-open'."
     (when run-youtube-dl?
       (ydl4e-download-async url
                             filename
-                            extra-ydl-args
-                            (lambda (file-path)
-                              (ydl4e-open-file-in-media-player file-path))))))
+                            extra-ydl-args))))
 
 (defun ydl4e-download-open ()
-  "Download file from a web server using youtube-dl and open it with `ydl4e-media-player'.
+  "Download file from a web server using and open it with `ydl4e-media-player'.
 
   If URL is given as argument, then download file from URL.  Else
   download the file from the url stored in `current-ring'."
@@ -457,15 +461,15 @@ Used by `ydl4e-download-open'."
 (defun ydl4e-delete-last-downloaded-file ()
   "Delete the last file downloaded though ydl4e."
   (interactive)
-  (or ydl4e-always-ask-delete-confirmation
-      (y-or-n-p (concat ydl4e-message-start
-                        "Are you sure you want to delete the file '"
-                        ydl4e-last-downloaded-file-name
-                        "'"
-                        "?"))
-      (delete-file ydl4e-last-downloaded-file-name)
-      (minibuffer-message (concat ydl4e-message-start
-                                  "Deleting file..."))))
+  (when (or (not ydl4e-always-ask-delete-confirmation)
+            (y-or-n-p (concat ydl4e-message-start
+                              "Are you sure you want to delete the file '"
+                              ydl4e-last-downloaded-file-name
+                              "'"
+                              "?")))
+    (delete-file ydl4e-last-downloaded-file-name)
+    (minibuffer-message (concat ydl4e-message-start
+                                "Deleting file..."))))
 
 (provide 'ydl4e)
 ;;; ydl4e.el ends here
