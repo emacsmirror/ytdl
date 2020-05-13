@@ -127,22 +127,32 @@ Used by `ydl4e-download-open'."
   :type 'boolean)
 
 (defvar ydl4e-last-downloaded-file-name
-  nil)
+  nil
+  "Path to the last file downloaded by `ydl4e'.")
 
 (defvar ydl4e-download-in-progress
-  0)
+  0
+  "Number of `ydl4e' downloads currently in progress.")
 
 (defvar ydl4e-mode-line-string
-  "")
+  ""
+  "`ydl4e' global mode string.")
 
-(defvar ydl4e-mode-line-initialized
-  nil)
+(defvar ydl4e-mode-line-initialized?
+  nil
+  "Whether `ydl4e' has been initialized or not. See
+  `ydl4e-eval-mode-line-string'.")
 
 (defun ydl4e-eval-mode-line-string(increment)
+  "Evaluate `ydl4e' global mode string.
+
+- Increment (or decrement) `ydl4e-download-in-progress'.
+- If needed, add `ydl4e-mode-line-string' to `global-mode-string'.
+- Update `ydl4e-mode-line-string'."
   (setq ydl4e-download-in-progress (+ ydl4e-download-in-progress increment))
   (when ydl4e-mode-line
     ;; Add `ydl4e-mode-line-string' to `global-mode-string' only if needed.
-    (unless ydl4e-mode-line-initialized
+    (unless ydl4e-mode-line-initialized?
       (let ((l global-mode-string)
             (ydl4e-string-found nil))
         (while (and (not ydl4e-string-found)
@@ -153,7 +163,7 @@ Used by `ydl4e-download-open'."
         (unless ydl4e-string-found
           (setq global-mode-string (append global-mode-string
                                            '("" ydl4e-mode-line-string))
-                ydl4e-mode-line-initialized t))))
+                ydl4e-mode-line-initialized? t))))
     (setq ydl4e-mode-line-string (if (> ydl4e-download-in-progress 0)
                                      (format "[ydl4e] downloading %s file(s)..." ydl4e-download-in-progress)
                                    ""))))
@@ -161,24 +171,24 @@ Used by `ydl4e-download-open'."
 (defun ydl4e-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of download types `ydl4e-download-types'.
 
-Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
-EXTRA-ARGS) to list ofdownload types.
+  Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
+                           EXTRA-ARGS) to list ofdownload types.
 
-NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
+  NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
   (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
 (defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
   "Run youtube-dl in a new eshell buffer.
 
-URL is the url of the video to download.  DESTINATION-FOLDER is
-the folder where the video will be downloaded.  FILENAME is the
-relative path (from DESTINATION-FOLDER) of the output file.
+  URL is the url of the video to download.  DESTINATION-FOLDER is
+  the folder where the video will be downloaded.  FILENAME is the
+  relative path (from DESTINATION-FOLDER) of the output file.
 
-Optional argument EXTRA-YDL-ARGS is the list of extra arguments
-to youtube-dl.
+  Optional argument EXTRA-YDL-ARGS is the list of extra arguments
+  to youtube-dl.
 
-This opration is asynchronous."
+  This opration is asynchronous."
 
   (let ((eshell-buffer-name "*youtube-dl*"))
     (split-window-right)
@@ -201,8 +211,8 @@ This opration is asynchronous."
 (defun ydl4e-get-default-filename (url)
   "Get default filename from webserver.
 
-Query the dafult-filename of URL using '--get-filename' argument
-of youtube-dl."
+  Query the dafult-filename of URL using '--get-filename' argument
+  of youtube-dl."
   (if ydl4e-always-query-default-filename
       (when (y-or-n-p (concat ydl4e-message-start
                               "Do you want to query the default filename? (This might take a few seconds)"))
@@ -246,8 +256,8 @@ of youtube-dl."
 (defun ydl4e-eval-field (field)
   "Return the value of FIELD.
 
-Test whether FIELD is a symbol.  If it is a symbol, returns the
-value of the symbol."
+  Test whether FIELD is a symbol.  If it is a symbol, returns the
+  value of the symbol."
   (if (symbolp field)
       (symbol-value field)
     field))
@@ -255,8 +265,8 @@ value of the symbol."
 (defun ydl4e-eval-list (list)
   "Evaluate all elements of LIST.
 
-Test whether each element is a symbol.  If it is a symbol,
-returns the value of the symbol."
+  Test whether each element is a symbol.  If it is a symbol,
+  returns the value of the symbol."
   (mapcar (lambda(arg)
             (ydl4e-eval-field arg))
           list))
@@ -264,12 +274,12 @@ returns the value of the symbol."
 (defun ydl4e-get-filename (destination-folder url)
   "Query a filename in mini-buffer.
 
-If `ydl4e-always-query-default-filename' is t, then the default
-value in the mini-buffer is the default filename of the URL.
+  If `ydl4e-always-query-default-filename' is t, then the default
+  value in the mini-buffer is the default filename of the URL.
 
-Returns a valid string:
-- no '/' in the filename
-- The filename does not exist yet in DESTINATION-FOLDER."
+  Returns a valid string:
+  - no '/' in the filename
+  - The filename does not exist yet in DESTINATION-FOLDER."
 
   (let* ((prompt (concat ydl4e-message-start
                          "Filename [no extension]: "))
@@ -299,10 +309,10 @@ Returns a valid string:
 (defun ydl4e-destination-folder-exist? (destination-folder)
   "Test if DESTINATION-FOLDER exists.
 
-If DESTINATION-FOLDER exists, then returns t.
+  If DESTINATION-FOLDER exists, then returns t.
 
-Else, query user if DESTINATION-FOLDER should be created.  If so,
-creates DESTINATION-FOLDER and returns t. Else, returns nil."
+  Else, query user if DESTINATION-FOLDER should be created.  If so,
+  creates DESTINATION-FOLDER and returns t. Else, returns nil."
   (if (file-exists-p destination-folder)
       t
     (if (y-or-n-p (concat "Directory '"
@@ -325,10 +335,10 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
 (defun ydl4e-download-async (url filename extra-ydl-args finish-function)
   "Asynchronously download URL into FILENAME.
 
-Extra arguments to youtube-dl can be provided with EXTRA-YDL-ARGS.
+  Extra arguments to youtube-dl can be provided with EXTRA-YDL-ARGS.
 
-FINISH-FUNCTION is a function that is executed once the file is
-downloaded. It takes a single argument (file-path)."
+  FINISH-FUNCTION is a function that is executed once the file is
+  downloaded. It takes a single argument (file-path)."
   (ydl4e-eval-mode-line-string 1)
   (async-start
    (lambda ()
@@ -356,7 +366,7 @@ downloaded. It takes a single argument (file-path)."
 (defun ydl4e-async-download-finished (filename)
   "Generic function run after download is completed.
 
-See `ydl4e-download-async'."
+  See `ydl4e-download-async'."
   (setq ydl4e-last-downloaded-file-name filename)
   (ydl4e-eval-mode-line-string -1)
   (message (concat ydl4e-message-start
@@ -379,10 +389,10 @@ See `ydl4e-download-async'."
 (defun ydl4e-download-eshell ()
   "Download file from a web server using youtube-dl in eshell.
 
-Download the file from the provided url into the appropriate
-folder location. Query the download type and use the associated
-destination folder and extra arguments, see
-`ydl4e-add-field-in-download-type-list'."
+  Download the file from the provided url into the appropriate
+  folder location. Query the download type and use the associated
+  destination folder and extra arguments, see
+  `ydl4e-add-field-in-download-type-list'."
   (interactive)
   (let* ((out (ydl4e-get-args))
          (url (nth 0 out))
@@ -418,8 +428,8 @@ destination folder and extra arguments, see
 (defun ydl4e-download-open ()
   "Download file from a web server using youtube-dl and open it with `ydl4e-media-player'.
 
-If URL is given as argument, then download file from URL.  Else
-download the file from the url stored in `current-ring'."
+  If URL is given as argument, then download file from URL.  Else
+  download the file from the url stored in `current-ring'."
   (interactive)
   (let* ((out (ydl4e-get-args))
          (url (nth 0 out))
@@ -446,7 +456,7 @@ download the file from the url stored in `current-ring'."
 (defun ydl4e-open-last-downloaded-file ()
   "Open the last downloaded file in `ydl4e-media-player'.
 
-The last downloaded file is stored in `ydl4e-last-downloaded-file-name'."
+  The last downloaded file is stored in `ydl4e-last-downloaded-file-name'."
   (interactive)
   (ydl4e-open-file-in-media-player ydl4e-last-downloaded-file-name))
 
