@@ -383,7 +383,7 @@ Used by `ydl4e-download-open'."
          (filename (ydl4e-get-filename  destination-folder url))
          (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
          (run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder)))
-    (list url dl-type destination-folder filename extra-ydl-args run-youtube-dl?)))
+    (list url filename extra-ydl-args run-youtube-dl?)))
 
 
 (defun ydl4e-download-eshell ()
@@ -396,11 +396,9 @@ Used by `ydl4e-download-open'."
   (interactive)
   (let* ((out (ydl4e-get-args))
          (url (nth 0 out))
-         (dl-type (nth 1 out))
-         (destination-folder (nth 2 out))
-         (filename (nth 3 out))
-         (extra-ydl-args (nth 4 out))
-         (run-youtube-dl? (nth 5 out)))
+         (filename (nth 1 out))
+         (extra-ydl-args (nth 2 out))
+         (run-youtube-dl? (nth 3 out)))
     (when run-youtube-dl?
       (ydl4e-run-youtube-dl-eshell url
                                    (file-name-directory filename)
@@ -413,11 +411,9 @@ Used by `ydl4e-download-open'."
   (interactive)
   (let* ((out (ydl4e-get-args))
          (url (nth 0 out))
-         (dl-type (nth 1 out))
-         (destination-folder (nth 2 out))
-         (filename (nth 3 out))
-         (extra-ydl-args (nth 4 out))
-         (run-youtube-dl? (nth 5 out)))
+         (filename (nth 1 out))
+         (extra-ydl-args (nth 2 out))
+         (run-youtube-dl? (nth 3 out)))
     (when run-youtube-dl?
       (ydl4e-download-async url
                             filename
@@ -433,11 +429,9 @@ Used by `ydl4e-download-open'."
   (interactive)
   (let* ((out (ydl4e-get-args))
          (url (nth 0 out))
-         (dl-type (nth 1 out))
-         (destination-folder (nth 2 out))
-         (filename (nth 3 out))
-         (extra-ydl-args (nth 4 out))
-         (run-youtube-dl? (nth 5 out)))
+         (filename (nth 1 out))
+         (extra-ydl-args (nth 2 out))
+         (run-youtube-dl? (nth 3 out)))
     (unless ydl4e-media-player
       (minibuffer-message (concat ydl4e-message-start
                                   "No media player is set up. See `ydl4e-media-player'.")))
