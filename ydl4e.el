@@ -75,7 +75,7 @@
 
 (defvar ydl4e-video-extra-args
   nil
-  "Default extra arguments for the default download type 'Videoss'.")
+  "Default extra arguments for the default download type 'Videos'.")
 
 (defvar ydl4e-download-types
   '(("Downloads" "d" ydl4e-download-folder ydl4-download-extra-args)
@@ -192,8 +192,9 @@ This opration is asynchronous."
             " -o " (concat
                     filename
                     ".%(ext)s")
-            (when extra-ydl-args
-              (insert " " (mapconcat #'identity extra-ydl-args " "))))
+            (if extra-ydl-args
+                (insert " " (mapconcat #'identity extra-ydl-args " "))
+              ""))
     (eshell-send-input)
     (windmove-left)))
 
