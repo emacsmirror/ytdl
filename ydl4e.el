@@ -353,42 +353,43 @@ downloaded. It takes a single argument (file-path)."
      (funcall finish-function file-path))))
 
 (defun ydl4e-async-download-finished (filename)
+  "Generic function run after download is completed.
+
+See `ydl4e-download-async'."
   (setq ydl4e-last-downloaded-file-name filename)
   (ydl4e-eval-mode-line-string -1)
   (message (concat ydl4e-message-start
                    "Video downloaded: "
                    filename)))
 
+(defun ydl4e-get-args ()
+  "Query user for ydl4e arguments."
+  (let* ((url (read-from-minibuffer (concat ydl4e-message-start
+                                            "URL: ")
+                                    (current-kill 0)))
+         (dl-type (ydl4e-get-download-type))
+         (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
+         (filename (ydl4e-get-filename  destination-folder url))
+         (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
+         (run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder)))
+    (list url dl-type destination-folder filename extra-ydl-args run-youtube-dl?)))
 
-(defun ydl4e-download-eshell (&optional url absolute-destination-path
-                                        extra-ydl-args)
+
+(defun ydl4e-download-eshell ()
   "Download file from a web server using youtube-dl in eshell.
 
-If URL is given as argument, then download file from URL.  Else
-download the file from the url stored in `current-ring'.
-
-Download the file from URL and place it at
-ABSOLUTE-DESTINATION-PATH if provided.  Else, query the download
-type and use the associated destination folder.  See
-`ydl4e-add-field-in-download-type-list'.
-
-If provided, use EXTRA-YDL-ARGS as extra arguments for youtue-dl
-executable.  ETXRA-YDL-ARGS is alist of strings.  Else, query the
-download type, and use the associated extra arguments.  See
+Download the file from the provided url into the appropriate
+folder location. Query the download type and use the associated
+destination folder and extra arguments, see
 `ydl4e-add-field-in-download-type-list'."
   (interactive)
-  (let* ((url (or url
-                  (current-kill 0)))
-         (dl-type (unless (and absolute-destination-path
-                               extra-ydl-args)
-                    (ydl4e-get-download-type)))
-         (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
-         (filename (or absolute-destination-path
-                       (ydl4e-get-filename  destination-folder url)))
-         (extra-ydl-args (or extra-ydl-args
-                             (ydl4e-eval-list (nth 2 dl-type))))
-         (run-youtube-dl? nil))
-    (setq run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder))
+  (let* ((out (ydl4e-get-args))
+         (url (nth 0 out))
+         (dl-type (nth 1 out))
+         (destination-folder (nth 2 out))
+         (filename (nth 3 out))
+         (extra-ydl-args (nth 4 out))
+         (run-youtube-dl? (nth 5 out)))
     (when run-youtube-dl?
       (ydl4e-run-youtube-dl-eshell url
                                    (file-name-directory filename)
@@ -396,30 +397,36 @@ download type, and use the associated extra arguments.  See
                                    extra-ydl-args))))
 
 
-(defun ydl4e-download-async (&optional url)
-  "Download asynchronously file from a web server using youtube-dl.
-
-If URL is given as argument, then download file from URL.  Else
-download the file from the url stored in `current-ring'."
+(defun ydl4e-download ()
+  "Download asynchronously file from a web server using youtube-dl."
   (interactive)
-  )
+  (let* ((out (ydl4e-get-args))
+         (url (nth 0 out))
+         (dl-type (nth 1 out))
+         (destination-folder (nth 2 out))
+         (filename (nth 3 out))
+         (extra-ydl-args (nth 4 out))
+         (run-youtube-dl? (nth 5 out)))
+    (when run-youtube-dl?
+      (ydl4e-download-async url
+                            filename
+                            extra-ydl-args
+                            (lambda (file-path)
+                              (ydl4e-open-file-in-media-player file-path))))))
 
-
-
-(defun ydl4e-download-open (&optional url)
+(defun ydl4e-download-open ()
   "Download file from a web server using youtube-dl and open it with `ydl4e-media-player'.
 
 If URL is given as argument, then download file from URL.  Else
 download the file from the url stored in `current-ring'."
   (interactive)
-  (let* ((url (or url
-                  (current-kill 0)))
-         (dl-type (ydl4e-get-download-type))
-         (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
-         (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
-         (filename (ydl4e-get-filename destination-folder url))
-         (run-youtube-dl? nil))
-    (setq run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder))
+  (let* ((out (ydl4e-get-args))
+         (url (nth 0 out))
+         (dl-type (nth 1 out))
+         (destination-folder (nth 2 out))
+         (filename (nth 3 out))
+         (extra-ydl-args (nth 4 out))
+         (run-youtube-dl? (nth 5 out)))
     (unless ydl4e-media-player
       (minibuffer-message (concat ydl4e-message-start
                                   "No media player is set up. See `ydl4e-media-player'.")))
