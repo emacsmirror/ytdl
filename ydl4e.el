@@ -6,7 +6,7 @@
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ydl4e
 ;; Version: 1.2.0
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.3") (async "1.9.4"))
 ;; Keywords: comm, emulations, multimedia
 
 ;; This file is not part of GNU Emacs.
@@ -42,6 +42,7 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'async)
 
 (defvar ydl4e-version
   "1.2.0"
