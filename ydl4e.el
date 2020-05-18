@@ -5,7 +5,7 @@
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ydl4e
-;; Version: 1.2.0
+;; Version: 1.2.1
 ;; Package-Requires: ((emacs "24.3") (async "1.9.4"))
 ;; Keywords: comm, emulations, multimedia
 
@@ -45,7 +45,7 @@
 (require 'async)
 
 (defvar ydl4e-version
-  "1.2.0"
+  "1.2.1"
   "Version of ydl4e.")
 
 (defcustom ydl4e-music-folder
