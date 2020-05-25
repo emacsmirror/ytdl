@@ -236,7 +236,7 @@ INCREMENT value.
   User can choose candidates from the elements of
   `ydl4e-download-types' whose ABSOLUTE-PATH-TO-FOLDER is not nil.
 
-  Returns (destination-folder file-format extra-args)."
+  Returns (destination-folder extra-args)."
 
   (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
                                               (mapconcat (lambda(x)
@@ -390,7 +390,7 @@ FILENAME is the absolute path of the file downloaded by
          (dl-type (ydl4e-get-download-type))
          (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (filename (ydl4e-get-filename  destination-folder url))
-         (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
+         (extra-ydl-args (ydl4e-eval-list (ydl4e-eval-field (nth 1 dl-type))))
          (run-youtube-dl? (ydl4e--destination-folder-exists-p destination-folder)))
     (list url filename extra-ydl-args run-youtube-dl?)))
 
