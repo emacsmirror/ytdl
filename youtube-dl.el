@@ -128,19 +128,19 @@ Default value is '[ytdl] '."
   :group 'youtube-dl
   :type 'boolean)
 
-(defvar youtube-dl-last-downloaded-file-name
+(defvar youtube-dl--last-downloaded-file-name
   nil
   "Path to the last file downloaded by `youtube-dl'.")
 
-(defvar youtube-dl-download-in-progress
+(defvar youtube-dl--download-in-progress
   0
   "Number of `youtube-dl' downloads currently in progress.")
 
-(defvar youtube-dl-mode-line-string
+(defvar youtube-dl--mode-line-string
   ""
   "`youtube-dl' global mode string.")
 
-(defvar youtube-dl-mode-line-initialized?
+(defvar youtube-dl--mode-line-initialized?
   nil
   "Whether `youtube-dl' has been initialized or not.
 
@@ -149,28 +149,28 @@ See `youtube-dl--eval-mode-line-string'.")
 (defun youtube-dl--eval-mode-line-string(increment)
   "Evaluate `youtube-dl' global mode string.
 
-- Increment (or decrement) `youtube-dl-download-in-progress' based on
+- Increment (or decrement) `youtube-dl--download-in-progress' based on
 INCREMENT value.
-- If needed, add `youtube-dl-mode-line-string' to `global-mode-string'.
-- Update `youtube-dl-mode-line-string'."
-  (setq youtube-dl-download-in-progress (+ youtube-dl-download-in-progress increment))
+- If needed, add `youtube-dl--mode-line-string' to `global-mode-string'.
+- Update `youtube-dl--mode-line-string'."
+  (setq youtube-dl--download-in-progress (+ youtube-dl--download-in-progress increment))
   (when youtube-dl-mode-line
-    ;; Add `youtube-dl-mode-line-string' to `global-mode-string' only if needed.
-    (unless youtube-dl-mode-line-initialized?
+    ;; Add `youtube-dl--mode-line-string' to `global-mode-string' only if needed.
+    (unless youtube-dl--mode-line-initialized?
       (let ((l global-mode-string)
             (youtube-dl-string-found nil))
         (while (and (not youtube-dl-string-found)
                     l)
-          (when (equal (car l) youtube-dl-mode-line-string)
+          (when (equal (car l) youtube-dl--mode-line-string)
             (setq youtube-dl-string-found t))
           (setq l (cdr l)))
         (unless youtube-dl-string-found
           (setq global-mode-string (append global-mode-string
-                                           '("" youtube-dl-mode-line-string))
-                youtube-dl-mode-line-initialized? t))))
-    (setq youtube-dl-mode-line-string (if (> youtube-dl-download-in-progress 0)
-                                          (format "[ytdl %s]" youtube-dl-download-in-progress)
-                                        ""))))
+                                           '("" youtube-dl--mode-line-string))
+                youtube-dl--mode-line-initialized? t))))
+    (setq youtube-dl--mode-line-string (if (> youtube-dl--download-in-progress 0)
+                                           (format "[ytdl %s]" youtube-dl--download-in-progress)
+                                         ""))))
 
 (defun youtube-dl-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of download types `youtube-dl-download-types'.
@@ -230,7 +230,7 @@ INCREMENT value.
     nil))
 
 
-(defun youtube-dl-get-download-type()
+(defun youtube-dl--get-download-type()
   "Query download type in mini-buffer.
 
   User can choose candidates from the elements of
@@ -240,9 +240,9 @@ INCREMENT value.
 
   (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
                                               (mapconcat (lambda(x)
-                                                           (when (youtube-dl-eval-field (nth 2 x))
+                                                           (when (youtube-dl--eval-field (nth 2 x))
                                                              (let ((destination (nth 0 x))
-                                                                   (letter-shortcut (youtube-dl-eval-field (nth 1 x))))
+                                                                   (letter-shortcut (youtube-dl--eval-field (nth 1 x))))
                                                                (concat " "
                                                                        destination
                                                                        "["
@@ -251,15 +251,16 @@ INCREMENT value.
                                                          youtube-dl-download-types
                                                          ""))
                                       (mapcar (lambda(x)
-                                                (when (youtube-dl-eval-field (nth 2 x))
-                                                  (aref (youtube-dl-eval-field(nth 1 x)) 0)))
+                                                (when (youtube-dl--eval-field (nth 2 x))
+                                                  (aref (youtube-dl--eval-field(nth 1 x)) 0)))
                                               youtube-dl-download-types))))
     (mapcan (lambda(x)
-              (when (= (aref (youtube-dl-eval-field (nth 1 x)) 0) user-input)
+              (when (= (aref (youtube-dl--eval-field (nth 1 x)) 0) user-input)
                 `(,(nth 2 x) ,(nth 3 x))))
             youtube-dl-download-types)))
 
-(defun youtube-dl-eval-field (field)
+
+(defun youtube-dl--eval-field (field)
   "Return the value of FIELD.
 
   Test whether FIELD is a symbol.  If it is a symbol, returns the
@@ -268,13 +269,14 @@ INCREMENT value.
       (symbol-value field)
     field))
 
-(defun youtube-dl-eval-list (list)
+
+(defun youtube-dl--eval-list (list)
   "Evaluate all elements of LIST.
 
   Test whether each element is a symbol.  If it is a symbol,
   returns the value of the symbol."
   (mapcar (lambda(arg)
-            (youtube-dl-eval-field arg))
+            (youtube-dl--eval-field arg))
           list))
 
 (defun youtube-dl-get-filename (destination-folder url)
@@ -374,9 +376,9 @@ INCREMENT value.
   "Generic function run after download is completed.
 
 FILENAME is the absolute path of the file downloaded by
-  `youtube-dl-download-async'.  See `youtube-dl-download-async' for more
-  details."
-  (setq youtube-dl-last-downloaded-file-name filename)
+  `youtube-dl--download-async'.  See `youtube-dl--download-async'
+  for more details."
+  (setq youtube-dl--last-downloaded-file-name filename)
   (youtube-dl--eval-mode-line-string -1)
   (message (concat youtube-dl-message-start
                    "Video downloaded: "
@@ -387,10 +389,10 @@ FILENAME is the absolute path of the file downloaded by
   (let* ((url (read-from-minibuffer (concat youtube-dl-message-start
                                             "URL: ")
                                     (current-kill 0)))
-         (dl-type (youtube-dl-get-download-type))
-         (destination-folder (youtube-dl-eval-field (nth 0 dl-type)))
+         (dl-type (youtube-dl--get-download-type))
+         (destination-folder (youtube-dl--eval-field (nth 0 dl-type)))
          (filename (youtube-dl-get-filename  destination-folder url))
-         (extra-ydl-args (youtube-dl-eval-list (youtube-dl-eval-field (nth 1 dl-type))))
+         (extra-ydl-args (youtube-dl--eval-list (youtube-dl--eval-field (nth 1 dl-type))))
          (run-youtube-dl? (youtube-dl--destination-folder-exists-p destination-folder)))
     (list url filename extra-ydl-args run-youtube-dl?)))
 
@@ -423,9 +425,9 @@ FILENAME is the absolute path of the file downloaded by
          (extra-ydl-args (nth 2 out))
          (run-youtube-dl? (nth 3 out)))
     (when run-youtube-dl?
-      (youtube-dl-download-async url
-                                 filename
-                                 extra-ydl-args))))
+      (youtube-dl--download-async url
+                                  filename
+                                  extra-ydl-args))))
 
 (defun youtube-dl-download-open ()
   "Download file from a web server using and open it with `youtube-dl-media-player'.
@@ -455,9 +457,9 @@ FILENAME is the absolute path of the file downloaded by
 (defun youtube-dl-open-last-downloaded-file ()
   "Open the last downloaded file in `youtube-dl-media-player'.
 
-  The last downloaded file is stored in `youtube-dl-last-downloaded-file-name'."
+  The last downloaded file is stored in `youtube-dl--last-downloaded-file-name'."
   (interactive)
-  (youtube-dl--open-file-in-media-player youtube-dl-last-downloaded-file-name))
+  (youtube-dl--open-file-in-media-player youtube-dl--last-downloaded-file-name))
 
 (defun youtube-dl-delete-last-downloaded-file ()
   "Delete the last file downloaded though youtube-dl."
@@ -465,12 +467,15 @@ FILENAME is the absolute path of the file downloaded by
   (when (or (not youtube-dl-always-ask-delete-confirmation)
             (y-or-n-p (concat youtube-dl-message-start
                               "Are you sure you want to delete the file '"
-                              youtube-dl-last-downloaded-file-name
+                              youtube-dl--last-downloaded-file-name
                               "'"
                               "?")))
-    (delete-file youtube-dl-last-downloaded-file-name)
+    (delete-file youtube-dl--last-downloaded-file-name)
     (minibuffer-message (concat youtube-dl-message-start
                                 "Deleting file..."))))
 
 (provide 'youtube-dl)
 ;;; youtube-dl.el ends here
+
+
+
