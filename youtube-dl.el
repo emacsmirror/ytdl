@@ -107,6 +107,15 @@ Default value is '[ytdl] '."
   :group 'youtube-dl
   :type 'boolean)
 
+(defcustom youtube-dl-max-mini-buffer-download-type-entries
+  5
+  "Maximum number of download types displayed in the minibuffer
+  with `read-char-choice'. If the number of download types is
+  greater than
+  `youtube-dl-max-mini-buffer-download-type-entries', then user
+  queries will be done through `completing-read'."
+  :group 'youtube-dl
+  :type '(string))
 
 
 (defvar youtube-dl-download-extra-args
@@ -247,24 +256,36 @@ INCREMENT value.
 
   Returns (destination-folder extra-args)."
 
-  (let ((user-input (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
-                                              (mapconcat (lambda(x)
-                                                           (when (youtube-dl--eval-field (nth 2 x))
-                                                             (let ((destination (nth 0 x))
-                                                                   (letter-shortcut (youtube-dl--eval-field (nth 1 x))))
-                                                               (concat " "
-                                                                       destination
-                                                                       "["
-                                                                       (propertize letter-shortcut 'face 'font-lock-warning-face)
-                                                                       "]"))))
-                                                         youtube-dl-download-types
-                                                         ""))
-                                      (mapcar (lambda(x)
-                                                (when (youtube-dl--eval-field (nth 2 x))
-                                                  (aref (youtube-dl--eval-field(nth 1 x)) 0)))
-                                              youtube-dl-download-types))))
+  (let* ((use-completing-read? (> (length youtube-dl-download-types)
+                                  youtube-dl-max-mini-buffer-download-type-entries))
+         (user-input (if use-completing-read?
+                         (completing-read "Choose a destination folder:"
+                                          (mapcar (lambda (dl-type)
+                                                    (if (youtube-dl--eval-field (nth 2 dl-type))
+                                                        (nth 0 dl-type)
+                                                      ""))
+                                                  youtube-dl-download-types))
+                       (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
+                                                 (mapconcat (lambda(x)
+                                                              (when (youtube-dl--eval-field (nth 2 x))
+                                                                (let ((destination (nth 0 x))
+                                                                      (letter-shortcut (youtube-dl--eval-field (nth 1 x))))
+                                                                  (concat " "
+                                                                          destination
+                                                                          "["
+                                                                          (propertize letter-shortcut 'face 'font-lock-warning-face)
+                                                                          "]"))))
+                                                            youtube-dl-download-types
+                                                            ""))
+                                         (mapcar (lambda(x)
+                                                   (when (youtube-dl--eval-field (nth 2 x))
+                                                     (aref (youtube-dl--eval-field(nth 1 x)) 0)))
+                                                 youtube-dl-download-types)))))
+
     (mapcan (lambda(x)
-              (when (= (aref (youtube-dl--eval-field (nth 1 x)) 0) user-input)
+              (when (if use-completing-read?
+                        (string= (nth 0 x) user-input)
+                      (= (aref (youtube-dl--eval-field (nth 1 x)) 0) user-input))
                 `(,(nth 2 x) ,(nth 3 x))))
             youtube-dl-download-types)))
 
