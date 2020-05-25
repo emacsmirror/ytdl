@@ -199,17 +199,19 @@ INCREMENT value.
     (when (eshell-interactive-process)
       (eshell t))
     (eshell-interrupt-process)
-    (insert (format "cd '%s' && youtube-dl " destination-folder)
-            url
-            " -o " (concat
-                    filename
-                    ".%(ext)s")
-            (if extra-ydl-args
-                (insert " " (mapconcat #'identity extra-ydl-args " "))
-              ""))
-    (eshell-send-input)
-
-(defun ydl4e-get-default-filename (url)
+    (insert (concat "cd "
+                    (shell-quote-argument destination-folder)
+                    " && youtube-dl "
+                    (shell-quote-argument url)
+                    " -o "
+                    (shell-quote-argument filename)
+                    ".%(ext)s"
+                    (when extra-ydl-args
+                      (concat " "
+                              (mapconcat #'shell-quote-argument
+                                         extra-ydl-args
+                                         " ")))))
+    (eshell-send-input)))
 
 (defun ydl4e--get-default-filename (url)
   "Get default filename from webserver.
@@ -226,6 +228,7 @@ INCREMENT value.
           (buffer-substring-no-properties (line-beginning-position)
                                           (1- (point)))))
     nil))
+
 
 (defun ydl4e-get-download-type()
   "Query download type in mini-buffer.
