@@ -44,6 +44,11 @@
 (require 'eshell)
 (require 'async)
 
+(defgroup youtube-dl
+  nil
+  "Emacs interface for youtube-dl."
+  :group 'external)
+
 (defvar youtube-dl-version
   "1.2.1"
   "Version of youtube-dl.")
@@ -66,32 +71,6 @@
   :group 'youtube-dl
   :type '(string))
 
-(defvar youtube-dl-download-extra-args
-  nil
-  "Default extra arguments for the default download type 'Downloads'.")
-
-(defvar youtube-dl-music-extra-args
-  '("-x" "--audio-format" "mp3")
-  "Default extra arguments for the default download type 'Music'.")
-
-(defvar youtube-dl-video-extra-args
-  nil
-  "Default extra arguments for the default download type 'Videos'.")
-
-(defvar youtube-dl-download-types
-  '(("Downloads" "d" youtube-dl-download-folder youtube-dl-download-extra-args)
-    ("Music"  "m" youtube-dl-music-folder youtube-dl-music-extra-args)
-    ("Videos" "v"  youtube-dl-video-folder youtube-dl-video-extra-args))
-  "List of destination folders.
-
-Each element is a list '(FIELD-NAME SHORTCUT
-ABSOLUTE-PATH-TO-FOLDER FORMAT EXTRA-COMMAND-LINE-ARGS) where:
-FIELD-NAME is a string; SHORTCUT is a string (only one
-character); ABSOLUTE-PATH-TO-FOLDER is the absolute path to the
-given folder; FILE-FORMAT is a file format accepted by
-youtube-dl;EXTRA-COMMAND-LINE-ARGS is extra command line
-arguments for youtube-dl.")
-
 (defcustom youtube-dl-always-query-default-filename
   nil
   "Whether to always query default-filename to youtube-dl.
@@ -113,20 +92,47 @@ arguments for youtube-dl.")
 Default is 'mpv'.
 Used by `youtube-dl-download-open'."
   :group 'youtube-dl
-  :type 'string)
+  :type '(string))
 
 (defcustom youtube-dl-message-start
   "[youtube-dl] "
   "String that starts all mini-buffer messages from `youtube-dl'.
 Default value is '[ytdl] '."
   :group 'youtube-dl
-  :type 'string)
+  :type '(string))
 
 (defcustom youtube-dl-mode-line
   t
   "Show `youtube-dl' information in EMACS mode line."
   :group 'youtube-dl
   :type 'boolean)
+
+
+
+(defvar youtube-dl-download-extra-args
+  nil
+  "Default extra arguments for the default download type 'Downloads'.")
+
+(defvar youtube-dl-music-extra-args
+  '("-x" "--audio-format" "mp3")
+  "Default extra arguments for the default download type 'Music'.")
+
+(defvar youtube-dl-video-extra-args
+  nil
+  "Default extra arguments for the default download type 'Videos'.")
+
+(defvar youtube-dl-download-types
+  '(("Downloads" "d" youtube-dl-download-folder youtube-dl-download-extra-args)
+    ("Music"  "m" youtube-dl-music-folder youtube-dl-music-extra-args)
+    ("Videos" "v"  youtube-dl-video-folder youtube-dl-video-extra-args))
+  "List of destination folders.
+
+Each element is a list '(FIELD-NAME SHORTCUT
+ABSOLUTE-PATH-TO-FOLDER EXTRA-COMMAND-LINE-ARGS) where:
+FIELD-NAME is a string; SHORTCUT is a string (only one
+character); ABSOLUTE-PATH-TO-FOLDER is the absolute path to the
+given folder; EXTRA-COMMAND-LINE-ARGS is extra command line
+arguments for youtube-dl.")
 
 (defvar youtube-dl--last-downloaded-file-name
   nil
@@ -145,6 +151,7 @@ Default value is '[ytdl] '."
   "Whether `youtube-dl' has been initialized or not.
 
 See `youtube-dl--eval-mode-line-string'.")
+
 
 (defun youtube-dl--eval-mode-line-string(increment)
   "Evaluate `youtube-dl' global mode string.
@@ -171,6 +178,7 @@ INCREMENT value.
     (setq youtube-dl--mode-line-string (if (> youtube-dl--download-in-progress 0)
                                            (format "[ytdl %s]" youtube-dl--download-in-progress)
                                          ""))))
+
 
 (defun youtube-dl-add-field-in-download-type-list (field-name keyboard-shortcut path-to-folder extra-args)
   "Add new field in the list of download types `youtube-dl-download-types'.
@@ -212,6 +220,7 @@ INCREMENT value.
                                          extra-ydl-args
                                          " ")))))
     (eshell-send-input)))
+
 
 (defun youtube-dl--get-default-filename (url)
   "Get default filename from webserver.
@@ -279,6 +288,7 @@ INCREMENT value.
             (youtube-dl--eval-field arg))
           list))
 
+
 (defun youtube-dl-get-filename (destination-folder url)
   "Query a filename in mini-buffer.
 
@@ -314,6 +324,7 @@ INCREMENT value.
                            "/"
                            filename))))
 
+
 (defun youtube-dl--destination-folder-exists-p (destination-folder)
   "Test if DESTINATION-FOLDER exists.
 
@@ -332,6 +343,7 @@ INCREMENT value.
       (minibuffer-message (concat youtube-dl-message-start
                                   "Operation aborted...")))))
 
+
 (defun youtube-dl--open-file-in-media-player (filename)
   "Open FILENAME in `youtube-dl-media-player'."
   (start-process-shell-command youtube-dl-media-player
@@ -339,6 +351,7 @@ INCREMENT value.
                                (concat youtube-dl-media-player
                                        " "
                                        filename)))
+
 
 (defun youtube-dl--download-async (url filename extra-ydl-args &optional finish-function)
   "Asynchronously download URL into FILENAME.
@@ -372,6 +385,7 @@ INCREMENT value.
      (when finish-function
        (funcall finish-function file-path)))))
 
+
 (defun youtube-dl--async-download-finished (filename)
   "Generic function run after download is completed.
 
@@ -383,6 +397,7 @@ FILENAME is the absolute path of the file downloaded by
   (message (concat youtube-dl-message-start
                    "Video downloaded: "
                    filename)))
+
 
 (defun youtube-dl--get-args ()
   "Query user for youtube-dl arguments."
@@ -416,6 +431,7 @@ FILENAME is the absolute path of the file downloaded by
                                          (file-name-nondirectory filename)
                                          extra-ydl-args))))
 
+
 (defun youtube-dl-download ()
   "Download asynchronously file from a web server using youtube-dl."
   (interactive)
@@ -428,6 +444,7 @@ FILENAME is the absolute path of the file downloaded by
       (youtube-dl--download-async url
                                   filename
                                   extra-ydl-args))))
+
 
 (defun youtube-dl-download-open ()
   "Download file from a web server using and open it with `youtube-dl-media-player'.
@@ -454,6 +471,7 @@ FILENAME is the absolute path of the file downloaded by
                                   extra-ydl-args
                                   'youtube-dl--open-file-in-media-player))))
 
+
 (defun youtube-dl-open-last-downloaded-file ()
   "Open the last downloaded file in `youtube-dl-media-player'.
 
@@ -473,6 +491,7 @@ FILENAME is the absolute path of the file downloaded by
     (delete-file youtube-dl--last-downloaded-file-name)
     (minibuffer-message (concat youtube-dl-message-start
                                 "Deleting file..."))))
+
 
 (provide 'youtube-dl)
 ;;; youtube-dl.el ends here
