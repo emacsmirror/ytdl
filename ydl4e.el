@@ -79,9 +79,9 @@
   "Default extra arguments for the default download type 'Videos'.")
 
 (defvar ydl4e-download-types
-  '(("Downloads" "d" ydl4e-download-folder ydl4-download-extra-args)
+  '(("Downloads" "d" ydl4e-download-folder ydl4e-download-extra-args)
     ("Music"  "m" ydl4e-music-folder ydl4e-music-extra-args)
-    ("Videos" "v"  ydl4e-video-folder ydl4-video-extra-args))
+    ("Videos" "v"  ydl4e-video-folder ydl4e-video-extra-args))
   "List of destination folders.
 
 Each element is a list '(FIELD-NAME SHORTCUT
@@ -144,9 +144,9 @@ Default value is '[ydl4e] '."
   nil
   "Whether `ydl4e' has been initialized or not.
 
-See `ydl4e-eval-mode-line-string'.")
+See `ydl4e--eval-mode-line-string'.")
 
-(defun ydl4e-eval-mode-line-string(increment)
+(defun ydl4e--eval-mode-line-string(increment)
   "Evaluate `ydl4e' global mode string.
 
 - Increment (or decrement) `ydl4e-download-in-progress' based on
@@ -182,7 +182,7 @@ INCREMENT value.
   (add-to-list 'ydl4e-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
-(defun ydl4e-run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
+(defun ydl4e--run-youtube-dl-eshell(url destination-folder filename &optional extra-ydl-args)
   "Run youtube-dl in a new eshell buffer.
 
   URL is the url of the video to download.  DESTINATION-FOLDER is
@@ -213,6 +213,8 @@ INCREMENT value.
     (windmove-left)))
 
 (defun ydl4e-get-default-filename (url)
+
+(defun ydl4e--get-default-filename (url)
   "Get default filename from webserver.
 
   Query the dafult-filename of URL using '--get-filename' argument
@@ -287,7 +289,7 @@ INCREMENT value.
 
   (let* ((prompt (concat ydl4e-message-start
                          "Filename [no extension]: "))
-         (default-filename (ydl4e-get-default-filename url))
+         (default-filename (ydl4e--get-default-filename url))
          (filename (read-from-minibuffer prompt
                                          default-filename)))
     (while (or (cl-search "/" filename)
@@ -310,7 +312,7 @@ INCREMENT value.
                            "/"
                            filename))))
 
-(defun ydl4e-destination-folder-exist? (destination-folder)
+(defun ydl4e--destination-folder-exists-p (destination-folder)
   "Test if DESTINATION-FOLDER exists.
 
   If DESTINATION-FOLDER exists, then returns t.
@@ -328,7 +330,7 @@ INCREMENT value.
       (minibuffer-message (concat ydl4e-message-start
                                   "Operation aborted...")))))
 
-(defun ydl4e-open-file-in-media-player (filename)
+(defun ydl4e--open-file-in-media-player (filename)
   "Open FILENAME in `ydl4e-media-player'."
   (start-process-shell-command ydl4e-media-player
                                nil
@@ -336,14 +338,14 @@ INCREMENT value.
                                        " "
                                        filename)))
 
-(defun ydl4e-download-async (url filename extra-ydl-args &optional finish-function)
+(defun ydl4e--download-async (url filename extra-ydl-args &optional finish-function)
   "Asynchronously download URL into FILENAME.
 
   Extra arguments to youtube-dl can be provided with EXTRA-YDL-ARGS.
 
   FINISH-FUNCTION is a function that is executed once the file is
   downloaded.  It takes a single argument (file-path)."
-  (ydl4e-eval-mode-line-string 1)
+  (ydl4e--eval-mode-line-string 1)
   (async-start
    (lambda ()
      (apply #'call-process "youtube-dl" nil nil nil
@@ -364,23 +366,23 @@ INCREMENT value.
        file-path))
 
    (lambda (file-path)
-     (ydl4e-async-download-finished file-path)
+     (ydl4e--async-download-finished file-path)
      (when finish-function
        (funcall finish-function file-path)))))
 
-(defun ydl4e-async-download-finished (filename)
+(defun ydl4e--async-download-finished (filename)
   "Generic function run after download is completed.
 
 FILENAME is the absolute path of the file downloaded by
   `ydl4e-download-async'.  See `ydl4e-download-async' for more
   details."
   (setq ydl4e-last-downloaded-file-name filename)
-  (ydl4e-eval-mode-line-string -1)
+  (ydl4e--eval-mode-line-string -1)
   (message (concat ydl4e-message-start
                    "Video downloaded: "
                    filename)))
 
-(defun ydl4e-get-args ()
+(defun ydl4e--get-args ()
   "Query user for ydl4e arguments."
   (let* ((url (read-from-minibuffer (concat ydl4e-message-start
                                             "URL: ")
@@ -389,7 +391,7 @@ FILENAME is the absolute path of the file downloaded by
          (destination-folder (ydl4e-eval-field (nth 0 dl-type)))
          (filename (ydl4e-get-filename  destination-folder url))
          (extra-ydl-args (ydl4e-eval-list (nth 2 dl-type)))
-         (run-youtube-dl? (ydl4e-destination-folder-exist? destination-folder)))
+         (run-youtube-dl? (ydl4e--destination-folder-exists-p destination-folder)))
     (list url filename extra-ydl-args run-youtube-dl?)))
 
 
@@ -401,22 +403,21 @@ FILENAME is the absolute path of the file downloaded by
   destination folder and extra arguments, see
   `ydl4e-add-field-in-download-type-list'."
   (interactive)
-  (let* ((out (ydl4e-get-args))
+  (let* ((out (ydl4e--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
          (extra-ydl-args (nth 2 out))
          (run-youtube-dl? (nth 3 out)))
     (when run-youtube-dl?
-      (ydl4e-run-youtube-dl-eshell url
-                                   (file-name-directory filename)
-                                   (file-name-nondirectory filename)
-                                   extra-ydl-args))))
-
+      (ydl4e--run-youtube-dl-eshell url
+                                    (file-name-directory filename)
+                                    (file-name-nondirectory filename)
+                                    extra-ydl-args))))
 
 (defun ydl4e-download ()
   "Download asynchronously file from a web server using youtube-dl."
   (interactive)
-  (let* ((out (ydl4e-get-args))
+  (let* ((out (ydl4e--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
          (extra-ydl-args (nth 2 out))
@@ -432,7 +433,7 @@ FILENAME is the absolute path of the file downloaded by
   If URL is given as argument, then download file from URL.  Else
   download the file from the url stored in `current-ring'."
   (interactive)
-  (let* ((out (ydl4e-get-args))
+  (let* ((out (ydl4e--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
          (extra-ydl-args (nth 2 out))
@@ -446,18 +447,17 @@ FILENAME is the absolute path of the file downloaded by
                                   ydl4e-media-player
                                   " cannot be found. Operation aborted.")))
     (when run-youtube-dl?
-      (ydl4e-download-async url
-                            filename
-                            extra-ydl-args
-                            (lambda (file-path)
-                              (ydl4e-open-file-in-media-player file-path))))))
+      (ydl4e--download-async url
+                             filename
+                             extra-ydl-args
+                             'ydl4e--open-file-in-media-player))))
 
 (defun ydl4e-open-last-downloaded-file ()
   "Open the last downloaded file in `ydl4e-media-player'.
 
   The last downloaded file is stored in `ydl4e-last-downloaded-file-name'."
   (interactive)
-  (ydl4e-open-file-in-media-player ydl4e-last-downloaded-file-name))
+  (ydl4e--open-file-in-media-player ydl4e-last-downloaded-file-name))
 
 (defun ydl4e-delete-last-downloaded-file ()
   "Delete the last file downloaded though ydl4e."
