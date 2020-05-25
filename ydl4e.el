@@ -195,8 +195,6 @@ INCREMENT value.
   This opration is asynchronous."
 
   (let ((eshell-buffer-name "*youtube-dl*"))
-    (split-window-right)
-    (windmove-right)
     (eshell)
     (when (eshell-interactive-process)
       (eshell t))
@@ -210,7 +208,6 @@ INCREMENT value.
                 (insert " " (mapconcat #'identity extra-ydl-args " "))
               ""))
     (eshell-send-input)
-    (windmove-left)))
 
 (defun ydl4e-get-default-filename (url)
 
