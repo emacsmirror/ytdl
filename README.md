@@ -17,11 +17,11 @@ use the "--help" command or the man page before actually using the
 tool, etc.). Those challenges (or leaning curves) can prevent many
 potential users from using the tool.
 
-The idea of `youtube-dl.el` is to provide an intuitive and flexible Emacs
-interface for youtube-dl. `youtube-dl.el` leads to considerable gains in
-efficiency and comfort, especially when used with `exwm` and a
-programmable web browser (see [Next
-Browser](https://next.atlas.engineer)).
+The idea of `youtube-dl.el` is to provide an intuitive and flexible
+Emacs interface for youtube-dl. `youtube-dl.el` leads to considerable
+gains in efficiency and comfort, especially when used with `exwm` and
+a programmable web browser (see [Next
+Browser](https://github.com/atlas-engineer/next)).
 
 ## Usage
 
@@ -83,7 +83,7 @@ configuration file:
 
 ### Additional Customization
 
-- By default, `youtube-dl` will query the default filename. This operation
+- By default, `youtube-dl.el` will query the default filename. This operation
 can take a few seconds (depending on the web server).
 
 To omit this query, add in your `init.el`:
@@ -92,18 +92,26 @@ To omit this query, add in your `init.el`:
 (setq youtube-dl-always-query-default-filename nil)
 ```
 
-- You can set the value of `youtube-dl-always-ask-delete-confirmation` to
-nil to avoid confirmation message when using
-`youtube-dl-delete-last-downloaded-file`.
+- To avoid confirmation message when using
+`youtube-dl-delete-last-downloaded-file`, set the value of
+`youtube-dl-always-ask-delete-confirmation` to nil
 
-- You can set up your media player (used by `youtube-dl-download-open`) by
-  changing the variable `youtube-dl-media-player`. Default value is `mpv`.
+- Set the media player (used by `youtube-dl-download-open`) by
+  changing the variable `youtube-dl-media-player`. Default value is
+  `mpv`.
 
 - You can change the beginning of the mini-buffer message by changing
   `youtube-dl-message-start`. Default value is `[youtube-dl]`.
 
 - You can hide the `youtube-dl` information in the global mode line by
   setting `youtube-dl-mode-line` to `nil`.
+
+- By default, `youtube-dl.el` queries the download type using
+  `read-char-choice`. If the list of download types is longer than a
+  certain value (`youtube-dl-max-mini-buffer-download-type-entries`),
+  then the download type is queried thtough `completing-read`
+  (enabling users to use `helm`). To always use `completing-read`, set
+  `youtube-dl-max-mini-buffer-download-type-entries` to 0.
 
 ### Example of configuration
 
@@ -122,6 +130,8 @@ Here is an example of configuration you can add to your `init.el`:
                                        (expand-file-name "~/podcasts")
                                        nil)
 ```
+
+
 
 
 
