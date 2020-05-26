@@ -416,8 +416,10 @@ downloaded.  It takes a single argument (file-path)."
 
    (lambda (response)
      (if (string-match "^ERROR" response)
-         (message (concat ytdl-message-start
-                          response))
+         (progn
+           (ytdl--eval-mode-line-string -1)
+           (message (concat ytdl-message-start
+                            response)))
        (ytdl--async-download-finished response)
        (when finish-function
          (funcall finish-function response))))))
