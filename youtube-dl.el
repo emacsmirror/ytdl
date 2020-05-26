@@ -384,27 +384,37 @@ INCREMENT value.
   (youtube-dl--eval-mode-line-string 1)
   (async-start
    (lambda ()
-     (apply #'call-process "youtube-dl" nil nil nil
-            url
-            "-o" (concat filename
-                         ".%(ext)s")
-            extra-ydl-args)
-     (let ((file-path nil)
-           (youtube-dl-extensions
-            '("3gp" "aac" "flv" "m4a" "mp3" "mp4" "ogg" "wav" "webm" "mkv")))
-       (while (and (not (when file-path
-                          (file-exists-p file-path)))
-                   youtube-dl-extensions)
-         (setq file-path (concat filename
-                                 "."
-                                 (car youtube-dl-extensions))
-               youtube-dl-extensions (cdr youtube-dl-extensions)))
-       file-path))
+     (with-temp-buffer
+       (apply #'call-process "youtube-dl" nil t nil
+              url
+              "-o" (concat filename
+                           ".%(ext)s")
+              extra-ydl-args)
+       (beginning-of-buffer)
+       (if (search-forward-regexp "^ERROR:" nil t nil)
+           (progn
+             (beginning-of-line)
+             (buffer-substring-no-properties (line-beginning-position)
+                                             (line-end-position)))
+         (let ((file-path nil)
+               (youtube-dl-extensions
+                '("3gp" "aac" "flv" "m4a" "mp3" "mp4" "ogg" "wav" "webm" "mkv")))
+           (while (and (not (when file-path
+                              (file-exists-p file-path)))
+                       youtube-dl-extensions)
+             (setq file-path (concat filename
+                                     "."
+                                     (car youtube-dl-extensions))
+                   youtube-dl-extensions (cdr youtube-dl-extensions)))
+           file-path))))
 
-   (lambda (file-path)
-     (youtube-dl--async-download-finished file-path)
-     (when finish-function
-       (funcall finish-function file-path)))))
+   (lambda (response)
+     (if (string-match "^ERROR" response)
+         (message (concat youtube-dl-message-start
+                          response))
+       (youtube-dl--async-download-finished response)
+       (when finish-function
+         (funcall finish-function response))))))
 
 
 (defun youtube-dl--async-download-finished (filename)
