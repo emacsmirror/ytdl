@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.2.1-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.2.2-green.svg)]()
 
 `ytdl` is an Emacs-based interface for `youtube-dl`, written in
 emacs-lisp.

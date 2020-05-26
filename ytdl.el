@@ -50,7 +50,7 @@
   :group 'external)
 
 (defvar ytdl-version
-  "1.2.1"
+  "1.2.2"
   "Version of ytdl.")
 
 (defcustom ytdl-music-folder
