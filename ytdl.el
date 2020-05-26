@@ -377,7 +377,7 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
                                nil
                                (concat ytdl-media-player
                                        " "
-                                       filename)))
+                                       (shell-quote-argument filename))))
 
 
 (defun ytdl--download-async (url filename extra-ydl-args &optional finish-function)
