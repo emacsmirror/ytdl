@@ -2,6 +2,8 @@
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
 [![version](https://img.shields.io/badge/version-1.2.2-green.svg)]()
+[![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
+
 
 `ytdl` is an Emacs-based interface for `youtube-dl`, written in
 emacs-lisp.
