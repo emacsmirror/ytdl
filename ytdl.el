@@ -571,7 +571,7 @@ The last downloaded file is stored in
 
 
 
-;; download list
+;; ytdl download list
 (defvar ytdl--dl-list-mode-map
   (let ((map (copy-keymap special-mode-map)))
     (prog1 map
@@ -591,7 +591,7 @@ The last downloaded file is stored in
   ;; see https://magit.vc/ for more details
   ["ytdl-download-list commands"
    [("g" "refresh" ytdl--refresh-download-list-buffer)
-    ("o" "open file" ytdl--open-item)
+    ("o" "open file in media player" ytdl--open-item)
     ("k" "remove from list" ytdl--delete-item)
     ("K" "remove from list and delete file" ytdl--delete-item-and-file )
     ("y" "copy file path" ytdl--copy-item-path)]])
@@ -637,7 +637,7 @@ This variable should be consistent with
 
 
 (defcustom ytdl--dl-buffer-name
-  "*ytdl-dl-list*"
+  "*ytdl-list*"
   "Name of `ytdl` download list buffer."
   :type '(string)
   :group 'ytdl)
@@ -684,6 +684,8 @@ For configuration, see `ytdl-dl-buffer-string' and
                               ytdl--download-list)
                      (ytdl--dl-list-mode)
                      (current-buffer)))))
+
+(defalias 'ytdl-show-list 'ytdl--refresh-download-list-buffer)
 
 (defun ytdl--print-item (item)
   "Print item information in ytdl dl buffer.
@@ -755,7 +757,7 @@ to configure the layout of ytdl download list buffer."
                       "downloaded"))
         (ytdl--message "File is not downloaded yet...")
       (let ((path (ytdl--list-entry-path item)))
-        (ytdl--message (concat "File path is: " path ". Added to kill-ring.))
+        (ytdl--message (concat "File path is: " path ". Added to kill-ring."))
         (kill-new path)))))
 
 (provide 'ytdl)
