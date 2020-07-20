@@ -39,6 +39,39 @@ Six interactive functions are available:
   downloaded by `ytdl`.
 - `ytdl-show-list` to show the dowload list.
 
+### URL
+
+`ytdl` pre-fills the mini-buffer with the URL at point if thing at
+point is an URL or the first entry in the kill ring. Users have to
+confim by pressing Enter.
+
+
+### Download List
+
+When calling `ytdl-show-list`, `ytdl` dowload list is shown in a new
+buffer. This list contains information about files already downloaded
+and files currently being downloaded.
+
+Several actions can be carried out within the download list buffer:
+
+- `g`: Refresh the list
+- `o`: Open the file in media player
+- `k`: Remove item from the list (the file will not be affected)
+- `K`: Remove item from the list and delete the associated file from the disk
+- `y`: Copy path to file into clipboard
+- `?`: Show the help menu with all the commands.
+
+
+### Demo
+
+![ytdl usage](doc/usage.gif)
+
+
+## Inspiration from Skeeto's `youtube-dl.el`
+
+Skeeto's interface was a source of inspiration for the development of
+the download list of `ytdl`. His original source code can be found
+[here](https://github.com/skeeto/youtube-dl-emacs).
 
 
 ## Configuration
