@@ -193,8 +193,7 @@ Keys are UUID.
       (define-key map "o" #'ytdl--open-item)
       (define-key map "k" #'ytdl--delete-item)
       (define-key map "K" #'ytdl--delete-item-and-file)
-      (define-key map "y" #'ytdl--copy-item-path)
-      ))
+      (define-key map "y" #'ytdl--copy-item-path)))
   "Keymap for `ytdl--dl-list-mode'.")
 
 (defcustom ytdl-dl-buffer-string
@@ -218,7 +217,7 @@ This variable should be consistent with
   :group 'ytdl
   :type '(string))
 
-(defcustom ytdl--dl-buffer-name
+(defcustom ytdl-dl-buffer-name
   "*ytdl-list*"
   "Name of `ytdl` download list buffer."
   :type '(string)
@@ -698,7 +697,7 @@ For configuration, see `ytdl-dl-buffer-string' and
   (interactive)
   (ytdl--message "Refreshing")
   (setq ytdl--mapping-list nil)
-  (pop-to-buffer (with-current-buffer (get-buffer-create ytdl--dl-buffer-name)
+  (pop-to-buffer (with-current-buffer (get-buffer-create ytdl-dl-buffer-name)
                    (let ((inhibit-read-only t))
                      (erase-buffer)
                      (maphash (lambda (key item)
@@ -710,7 +709,7 @@ For configuration, see `ytdl-dl-buffer-string' and
                      (current-buffer)))))
 
 
-(defalias 'ytdl-show-list 'ytdl--refresh-download-list-buffer)
+(defalias 'ytdl-show-list #'ytdl--refresh-download-list-buffer)
 
 
 (defun ytdl--print-item (item)
