@@ -1,6 +1,6 @@
 ;;; ytdl.el --- Emacs Interface for youtube-dl -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019 Arnaud Hoffmann
+;; Copyright (C) 2020 Arnaud Hoffmann
 
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
