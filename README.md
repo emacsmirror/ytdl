@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.2.2-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.3.0-green.svg)]()
 [![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
 
 
@@ -9,8 +9,8 @@
 emacs-lisp.
 
 `youtube-dl` is a command-line program to download videos from
-YouTube.com and a few more sites. More information,
-[here](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme).
+YouTube.com and a few more sites. More information
+[here](https://https://youtube-dl.org/).
 
 ## Motivation
 
@@ -21,9 +21,7 @@ potential users from using the tool.
 
 The idea of `ytdl` is to provide an intuitive and flexible Emacs
 interface for `youtube-dl`. `ytdl` leads to considerable gains in
-efficiency and comfort, especially when used with `exwm` and a
-programmable web browser (see [Next
-Browser](https://github.com/atlas-engineer/next)).
+efficiency and comfort, especially when used with `exwm`.
 
 ## Usage
 
@@ -32,13 +30,15 @@ Add the following line to your `init.el`:
 (require 'ytdl)
 ```
 
-Five interactive functions are available:
+Six interactive functions are available:
 - `ytdl-download-eshell`, `ytdl-download` and `ytdl-download-open`
   that can be used to download a media file from an url.
 - `ytdl-open-last-downloaded-file` to open the last file downloaded
   with `ytdl` in the configured media player.
 - `ytdl-delete-last-downloaded-file` to delete the last file
   downloaded by `ytdl`.
+- `ytdl-show-list` to show the dowload list.
+
 
 
 ## Configuration
@@ -85,7 +85,7 @@ configuration file:
 
 ### Additional Customization
 
-- By default, `ytdl.el` will query the default filename. This operation
+- By default, `ytdl` queries the default filename. This operation
 can take a few seconds (depending on the web server).
 
 To omit this query, add in your `init.el`:
@@ -102,18 +102,27 @@ To omit this query, add in your `init.el`:
   changing the variable `ytdl-media-player`. Default value is
   `mpv`.
 
-- You can change the beginning of the mini-buffer message by changing
+- Change the beginning of `ytdl` mini-buffer messages by changing
   `ytdl-message-start`. Default value is `[ytdl]`.
 
-- You can hide the `ytdl` information in the global mode line by
-  setting `ytdl-mode-line` to `nil`.
+- Hide the `ytdl` information in the global mode line by setting
+  `ytdl-mode-line` to `nil`.
 
-- By default, `ytdl.el` queries the download type using
+- By default, `ytdl` queries the download type using
   `read-char-choice`. If the list of download types is longer than a
-  certain value (`ytdl-max-mini-buffer-download-type-entries`),
-  then the download type is queried thtough `completing-read`
-  (enabling users to use `helm`). To always use `completing-read`, set
+  certain value (`ytdl-max-mini-buffer-download-type-entries`), then
+  the download type is queried thtough `completing-read` (enabling
+  users to use `helm`). To always use `completing-read`, set
   `ytdl-max-mini-buffer-download-type-entries` to 0.
+
+- Change `ytdl` download list buffer name with `ytdl-dl-buffer-name`.
+
+- Customize the columns of the download list by changing
+  `ytdl-dl-buffer-string` and `ytdl-dl-buffer-fields-to-print`. Note
+  that `ytdl-dl-buffer-fields-to-print` is a list whose members are
+  slots of `ytdl--list-entry`.
+
+
 
 ### Example of configuration
 
