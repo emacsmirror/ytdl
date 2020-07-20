@@ -49,6 +49,7 @@
 (require 'transient)
 (require 'cl-lib)
 
+
 (defgroup ytdl
   nil
   "Emacs interface for ytdl."
@@ -122,7 +123,6 @@ will be done through `completing-read' instead of
 `read-char-choice'."
   :group 'ytdl
   :type '(string))
-
 
 (defvar ytdl-download-extra-args
   nil
@@ -218,15 +218,6 @@ This variable should be consistent with
   :group 'ytdl
   :type '(string))
 
-;; Object storing all data related to a download item in ytdl
-(cl-defstruct ytdl--list-entry
-  title
-  status
-  type
-  path
-  size
-  process-id)
-
 (defcustom ytdl--dl-buffer-name
   "*ytdl-list*"
   "Name of `ytdl` download list buffer."
@@ -241,6 +232,15 @@ The list maps implicitely the line index of a `ytdl--list-entry'
 in `ytdl-dl-list' buffer and its unique ID.  The mapping is done
 implicietly through the position of each UID in the
 list (i.e. position = line_index - 1).")
+
+;; Object storing all data related to a download item in ytdl
+(cl-defstruct ytdl--list-entry
+  title
+  status
+  type
+  path
+  size
+  process-id)
 
 
 ;; Functions
@@ -656,9 +656,6 @@ The last downloaded file is stored in
 
 
 ;; ytdl download list
-
-
-
 (transient-define-prefix ytdl--dispatch ()
   "Invoke a ytdl command from a list of available commands."
   ;; This function was inspired from magit
@@ -710,7 +707,9 @@ For configuration, see `ytdl-dl-buffer-string' and
                      (ytdl--dl-list-mode)
                      (current-buffer)))))
 
+
 (defalias 'ytdl-show-list 'ytdl--refresh-download-list-buffer)
+
 
 (defun ytdl--print-item (item)
   "Print item  information of ITEM in ytdl dl buffer.
@@ -736,10 +735,12 @@ to configure the layout of ytdl download list buffer."
   (nth (1- (line-number-at-pos))
        ytdl--mapping-list))
 
+
 (defun ytdl--get-item-object()
   "Get objevt if highlighted list item."
   (gethash (ytdl--get-item-key)
            ytdl--download-list))
+
 
 ;; list of ytdl download list commands
 (defun  ytdl--delete-item ()
@@ -759,6 +760,7 @@ disk.  See `ytdl--delete-item-and-file' for that feature."
     (remhash (ytdl--get-item-key)
              ytdl--download-list)
     (ytdl--refresh-download-list-buffer)))
+
 
 (defun ytdl--delete-item-and-file()
   "Delete highlighted list item from list and disk.
@@ -802,6 +804,7 @@ To configure the media player for `ytdl', see
       (let ((path (ytdl--list-entry-path item)))
         (ytdl--message (concat "File path is: " path ". Added to kill-ring."))
         (kill-new path)))))
+
 
 (provide 'ytdl)
 ;;; ytdl.el ends here
