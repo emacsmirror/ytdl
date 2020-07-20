@@ -210,7 +210,7 @@ This variable should be consistent with
   '("title" "status" "size" "type")
   "List of fields to be printed in ytdl download list buffer.
 
-The fields should be strings adn selected among the slots of
+The fields should be strings and selected among the slots of
 `ytdl--list-entry'.
 
 This variable should be consistent with
@@ -545,7 +545,7 @@ UUID is the key of the list item in `ytdl--download-list'."
                                         ytdl--download-list))
         (file-size-human-readable (file-attribute-size
                                    (file-attributes
-                                    "/home/tuedachu/perso/videos/b.mkv"))))
+                                    filename))))
   (ytdl--eval-mode-line-string -1)
   (message (concat ytdl-message-start
                    "Video downloaded: "
