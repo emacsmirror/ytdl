@@ -439,6 +439,7 @@ downloaded.  It takes a single argument (file-path)."
                                         :status "downloading"
                                         :type (or dl-type "Unknown")
                                         :path nil
+                                        :size "?"
                                         :process-id process-id)
              ytdl--download-list)))
 
@@ -456,6 +457,11 @@ details."
   (setf (ytdl--list-entry-path (gethash url
                                         ytdl--download-list))
         filename)
+  (setf (ytdl--list-entry-size (gethash url
+                                        ytdl--download-list))
+        (file-size-human-readable (file-attribute-size
+                                   (file-attributes
+                                    "/home/tuedachu/perso/videos/b.mkv"))))
   (ytdl--eval-mode-line-string -1)
   (message (concat ytdl-message-start
                    "Video downloaded: "
@@ -590,7 +596,7 @@ The last downloaded file is stored in
 
 
 (defcustom ytdl-dl-buffer-string
-  "%-40s %-15s %s"
+  "%-40s %-15s %-7s %s"
   "String used to format ytdl download list buffer.
 
 This variable should be consistent with
@@ -598,7 +604,7 @@ This variable should be consistent with
 
 
 (defcustom ytdl-dl-buffer-fields-to-print
-  '("title" "status" "type")
+  '("title" "status" "size" "type")
   "List of fields to be printed in ytdl download list buffer.
 
 The fields should be strings adn selected among the slots of
@@ -615,7 +621,7 @@ This variable should be consistent with
   (use-local-map ytdl--dl-list-mode-map)
   (setf truncate-lines t
         header-line-format (format ytdl-dl-buffer-string
-                                   "Title" "Status" "Download type")))
+                                   "Title" "Status" "Size" "Download type")))
 
 
 ;; Object storing all data related to a download item in ytdl
@@ -624,6 +630,7 @@ This variable should be consistent with
   status
   type
   path
+  size
   process-id)
 
 
