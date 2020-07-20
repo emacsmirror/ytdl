@@ -182,7 +182,7 @@ See `ytdl--eval-mode-line-string'.")
   (make-hash-table :test 'equal)
   "Hash table of current `ytdl` downloads.
 
-Keys are unique ID generated for each by ???.Each value is a
+Keys are UUID.
 `ytdl--list-entry'.")
 
 (defvar ytdl--dl-list-mode-map
@@ -476,7 +476,8 @@ downloaded.  It takes a single argument (file-path).
 
 DL-TYPE is the download type, see `ytdl-download-types'."
   (ytdl--eval-mode-line-string 1)
-  (let (process-id)
+  (let ((process-id)
+        (uuid (ytdl--uuid url)))
     (setq process-id
           (async-start
            (lambda ()
@@ -507,40 +508,40 @@ DL-TYPE is the download type, see `ytdl-download-types'."
            (lambda (response)
              (if (string-match "^ERROR" response)
                  (progn
-                   (setf (ytdl--list-entry-status (gethash url
+                   (setf (ytdl--list-entry-status (gethash uuid
                                                            ytdl--download-list))
                          "error")
                    (ytdl--eval-mode-line-string -1)
                    (message (concat ytdl-message-start
                                     response)))
-               (ytdl--async-download-finished response url)
+               (ytdl--async-download-finished response uuid)
                (when finish-function
                  (funcall finish-function response))))))
-    (puthash url (make-ytdl--list-entry :title (file-name-nondirectory filename)
-                                        :status "downloading"
-                                        :type (or dl-type "Unknown")
-                                        :path nil
-                                        :size "?"
-                                        :process-id process-id)
+    (puthash uuid (make-ytdl--list-entry :title (file-name-nondirectory filename)
+                                         :status "downloading"
+                                         :type (or dl-type "Unknown")
+                                         :path nil
+                                         :size "?"
+                                         :process-id process-id)
              ytdl--download-list)))
 
 
-(defun ytdl--async-download-finished (filename url)
+(defun ytdl--async-download-finished (filename uuid)
   "Generic function run after download is completed.
 
 FILENAME is the absolute path of the file downloaded by
 `ytdl--download-async'.  See `ytdl--download-async' for more
 details.
 
-URL is the url of the video to download."
+UUID is the key of the list item in `ytdl--download-list'."
   (setq ytdl--last-downloaded-file-name filename)
-  (setf (ytdl--list-entry-status (gethash url
+  (setf (ytdl--list-entry-status (gethash uuid
                                           ytdl--download-list))
         "downloaded")
-  (setf (ytdl--list-entry-path (gethash url
+  (setf (ytdl--list-entry-path (gethash uuid
                                         ytdl--download-list))
         filename)
-  (setf (ytdl--list-entry-size (gethash url
+  (setf (ytdl--list-entry-size (gethash uuid
                                         ytdl--download-list))
         (file-size-human-readable (file-attribute-size
                                    (file-attributes
@@ -670,8 +671,10 @@ The last downloaded file is stored in
     ("y" "copy file path" ytdl--copy-item-path)]])
 
 
-
-
+(defun ytdl--uuid (url)
+  "Generate a UUID using URL."
+  (concat url
+          (url-encode-url (time-stamp-string))))
 
 (define-derived-mode ytdl--dl-list-mode
   special-mode "ytdl-mode"
