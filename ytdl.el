@@ -30,12 +30,15 @@
 ;; emacs-lisp.
 ;;
 ;; youtube-dl is a command-line program to download videos from
-;; YouTube.com and a few more sites.  More information, at
-;; https://github.com/ytdl-org/ytdl/blob/master/README.md#readme.
+;; YouTube and a few more sites.  More information at
+;; https://yt-dl.org.
+;;
+;; youtube-dl supports many more sites: PeeTube, BBC, IMDB,
+;; InternetVideoArchive (non-exhaustive list)
 ;;
 ;; * Setup
 ;;
-;; Add "(require 'ytdl)" to your "init.el" file
+;; Add "(require 'ytdl)" to your "init.el" file.
 ;;
 ;; Further customization can be found in the documentation online.
 
@@ -123,15 +126,24 @@ will be done through `completing-read' instead of
 
 (defvar ytdl-download-extra-args
   nil
-  "Default extra arguments for the default download type 'Downloads'.")
+  "Default extra arguments for the default download type 'Downloads'.
+
+Expected value is a list of extra command line arguments for
+youtube-dl.")
 
 (defvar ytdl-music-extra-args
   '("-x" "--audio-format" "mp3")
-  "Default extra arguments for the default download type 'Music'.")
+  "Default extra arguments for the default download type 'Music'.
+
+Expected value is a list of extra command line arguments for
+youtube-dl.")
 
 (defvar ytdl-video-extra-args
   nil
-  "Default extra arguments for the default download type 'Videos'.")
+  "Default extra arguments for the default download type 'Videos'.
+
+Expected value is a list of extra command line arguments for
+youtube-dl.")
 
 (defvar ytdl-download-types
   '(("Downloads" "d" ytdl-download-folder ytdl-download-extra-args)
@@ -165,6 +177,73 @@ arguments for ytdl.")
 See `ytdl--eval-mode-line-string'.")
 
 
+;; ytdl download list
+(defvar ytdl--download-list
+  (make-hash-table :test 'equal)
+  "Hash table of current `ytdl` downloads.
+
+Keys are unique ID generated for each by ???.Each value is a
+`ytdl--list-entry'.")
+
+(defvar ytdl--dl-list-mode-map
+  (let ((map (copy-keymap special-mode-map)))
+    (prog1 map
+      (define-key map "?" #'ytdl--dispatch)
+      (define-key map "g" #'ytdl--refresh-download-list-buffer)
+      (define-key map "o" #'ytdl--open-item)
+      (define-key map "k" #'ytdl--delete-item)
+      (define-key map "K" #'ytdl--delete-item-and-file)
+      (define-key map "y" #'ytdl--copy-item-path)
+      ))
+  "Keymap for `ytdl--dl-list-mode'.")
+
+(defcustom ytdl-dl-buffer-string
+  "%-40s %-15s %-7s %s"
+  "String used to format ytdl download list buffer.
+
+This variable should be consistent with
+`ytdl-dl-buffer-fields-to-print'."
+  :group 'ytdl
+  :type '(string))
+
+(defcustom ytdl-dl-buffer-fields-to-print
+  '("title" "status" "size" "type")
+  "List of fields to be printed in ytdl download list buffer.
+
+The fields should be strings adn selected among the slots of
+`ytdl--list-entry'.
+
+This variable should be consistent with
+`ytdl-dl-buffer-string'."
+  :group 'ytdl
+  :type '(string))
+
+;; Object storing all data related to a download item in ytdl
+(cl-defstruct ytdl--list-entry
+  title
+  status
+  type
+  path
+  size
+  process-id)
+
+(defcustom ytdl--dl-buffer-name
+  "*ytdl-list*"
+  "Name of `ytdl` download list buffer."
+  :type '(string)
+  :group 'ytdl)
+
+(defvar ytdl--mapping-list
+  nil
+  "Internal map used by `ytdl'.
+
+The list maps implicitely the line index of a `ytdl--list-entry'
+in `ytdl-dl-list' buffer and its unique ID.  The mapping is done
+implicietly through the position of each UID in the
+list (i.e. position = line_index - 1).")
+
+
+;; Functions
 (defun ytdl--message (msg)
   "Diplay MSG starting with `ytdl-message-start'."
   (message (concat ytdl-message-start
@@ -393,9 +472,11 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
 Extra arguments to ytdl can be provided with EXTRA-YDL-ARGS.
 
 FINISH-FUNCTION is a function that is executed once the file is
-downloaded.  It takes a single argument (file-path)."
+downloaded.  It takes a single argument (file-path).
+
+DL-TYPE is the download type, see `ytdl-download-types'."
   (ytdl--eval-mode-line-string 1)
-  (let (proces-id)
+  (let (process-id)
     (setq process-id
           (async-start
            (lambda ()
@@ -449,7 +530,9 @@ downloaded.  It takes a single argument (file-path)."
 
 FILENAME is the absolute path of the file downloaded by
 `ytdl--download-async'.  See `ytdl--download-async' for more
-details."
+details.
+
+URL is the url of the video to download."
   (setq ytdl--last-downloaded-file-name filename)
   (setf (ytdl--list-entry-status (gethash url
                                           ytdl--download-list))
@@ -572,17 +655,7 @@ The last downloaded file is stored in
 
 
 ;; ytdl download list
-(defvar ytdl--dl-list-mode-map
-  (let ((map (copy-keymap special-mode-map)))
-    (prog1 map
-      (define-key map "?" #'ytdl--dispatch)
-      (define-key map "g" #'ytdl--refresh-download-list-buffer)
-      (define-key map "o" #'ytdl--open-item)
-      (define-key map "k" #'ytdl--delete-item)
-      (define-key map "K" #'ytdl--delete-item-and-file)
-      (define-key map "y" #'ytdl--copy-item-path)
-      ))
-  "Keymap for `ytdl--dl-list-mode'.")
+
 
 
 (transient-define-prefix ytdl--dispatch ()
@@ -597,23 +670,7 @@ The last downloaded file is stored in
     ("y" "copy file path" ytdl--copy-item-path)]])
 
 
-(defcustom ytdl-dl-buffer-string
-  "%-40s %-15s %-7s %s"
-  "String used to format ytdl download list buffer.
 
-This variable should be consistent with
-`ytdl-dl-buffer-fields-to-print'.")
-
-
-(defcustom ytdl-dl-buffer-fields-to-print
-  '("title" "status" "size" "type")
-  "List of fields to be printed in ytdl download list buffer.
-
-The fields should be strings adn selected among the slots of
-`ytdl--list-entry'.
-
-This variable should be consistent with
-`ytdl-dl-buffer-string'.")
 
 
 (define-derived-mode ytdl--dl-list-mode
@@ -624,41 +681,6 @@ This variable should be consistent with
   (setf truncate-lines t
         header-line-format (format ytdl-dl-buffer-string
                                    "Title" "Status" "Size" "Download type")))
-
-
-;; Object storing all data related to a download item in ytdl
-(cl-defstruct ytdl--list-entry
-  title
-  status
-  type
-  path
-  size
-  process-id)
-
-
-(defcustom ytdl--dl-buffer-name
-  "*ytdl-list*"
-  "Name of `ytdl` download list buffer."
-  :type '(string)
-  :group 'ytdl)
-
-
-(defvar ytdl--download-list
-  (make-hash-table :test 'equal)
-  "Hash table of current `ytdl` downloads.
-
-Keys are unique ID generated for each by ???.Each value is a
-`ytdl--list-entry'.")
-
-
-(defvar ytdl--mapping-list
-  nil
-  "Internal map used by `ytdl'.
-
-The list maps implicitely the line index of a `ytdl--list-entry'
-in `ytdl-dl-list' buffer and its unique ID.  The mapping is done
-implicietly through the position of each UID in the
-list (i.e. position = line_index - 1).")
 
 
 (defun ytdl--refresh-download-list-buffer()
@@ -688,7 +710,7 @@ For configuration, see `ytdl-dl-buffer-string' and
 (defalias 'ytdl-show-list 'ytdl--refresh-download-list-buffer)
 
 (defun ytdl--print-item (item)
-  "Print item information in ytdl dl buffer.
+  "Print item  information of ITEM in ytdl dl buffer.
 
 See `ytdl-dl-buffer-string' and `ytdl-dl-buffer-fields-to-print'
 to configure the layout of ytdl download list buffer."
@@ -707,15 +729,24 @@ to configure the layout of ytdl download list buffer."
 
 
 (defun ytdl--get-item-key()
+  "Get key of highlighted list item."
   (nth (1- (line-number-at-pos))
        ytdl--mapping-list))
 
 (defun ytdl--get-item-object()
+  "Get objevt if highlighted list item."
   (gethash (ytdl--get-item-key)
            ytdl--download-list))
 
 ;; list of ytdl download list commands
 (defun  ytdl--delete-item ()
+  "Delete highlighted list item from list.
+
+If the highlighted item is still being downloaded, then interrupt
+the process.
+
+Note that this function does not delete the eventual file on the
+disk.  See `ytdl--delete-item-and-file' for that feature."
   (interactive)
   (let ((item (ytdl--get-item-object)))
     (when (string= (ytdl--list-entry-status item)
@@ -727,6 +758,10 @@ to configure the layout of ytdl download list buffer."
     (ytdl--refresh-download-list-buffer)))
 
 (defun ytdl--delete-item-and-file()
+  "Delete highlighted list item from list and disk.
+
+If the highlighted item is still being downloaded, then interrupt
+the process."
   (interactive)
   (let* ((item (ytdl--get-item-object))
          (status (ytdl--list-entry-status item)))
@@ -741,6 +776,10 @@ to configure the layout of ytdl download list buffer."
 
 
 (defun ytdl--open-item()
+  "Open highlighted item in media player.
+
+To configure the media player for `ytdl', see
+`ytdl-media-player'."
   (interactive)
   (let ((item (ytdl--get-item-object)))
     (if (not (string= (ytdl--list-entry-status item)
@@ -751,6 +790,7 @@ to configure the layout of ytdl download list buffer."
 
 
 (defun  ytdl--copy-item-path ()
+  "Copy path of the higlighted list item to kill ring."
   (interactive)
   (let ((item (ytdl--get-item-object)))
     (if (not (string= (ytdl--list-entry-status item)
