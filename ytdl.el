@@ -192,9 +192,15 @@ Keys are UUID.
       (define-key map "?" #'ytdl--dispatch)
       (define-key map "g" #'ytdl--refresh-list)
       (define-key map "o" #'ytdl--open-item)
-      (define-key map "k" #'ytdl--delete-item)
-      (define-key map "K" #'ytdl--delete-item-and-file)
+      (define-key map "k" #'ytdl--delete-item-at-point)
+      (define-key map "K" #'ytdl--delete-item-and-file-at-point)
+      (define-key map "d" #'ytdl--delete-marked-items)
+      (define-key map "D" #'ytdl--delete-marked-items-and-files)
       (define-key map "e" #'ytdl--show-error)
+      (define-key map "m" #'ytdl--mark)
+      (define-key map "m" #'ytdl--mark-all)
+      (define-key map "u" #'ytdl--unmark)
+      (define-key map "U" #'ytdl--unmark-all)
       (define-key map "y" #'ytdl--copy-item-path)))
   "Keymap for `ytdl--dl-list-mode'.")
 
@@ -214,6 +220,9 @@ Keys are UUID.
   error
   process-id)
 
+(defvar ytdl--marked-items
+  '()
+  "List of marked items.")
 
 ;; Functions
 (defun ytdl--message (msg)
@@ -636,15 +645,19 @@ The last downloaded file is stored in
 ;; ytdl download list
 (transient-define-prefix ytdl--dispatch ()
   "Invoke a ytdl command from a list of available commands."
-  ;; This function was inspired from magit
-  ;; see https://magit.vc/ for more details
   ["ytdl-download-list commands"
    [("g" "refresh" ytdl--refresh-list )
     ("o" "open file in media player" ytdl--open-item)
-    ("k" "remove from list" ytdl--delete-item)
-    ("K" "remove from list and delete file" ytdl--delete-item-and-file )
+    ("k" "remove from list" ytdl--delete-item-at-point )
+    ("K" "remove from list and delete file" ytdl--delete-item-and-file-at-point )
     ("e" "show eventual error(s)" ytdl--show-error)
-    ("y" "copy file path" ytdl--copy-item-path)]])
+    ("y" "copy file path" ytdl--copy-item-path)]
+   [("m" "mark item(s) at point" ytdl--mark)
+    ("M" "mark all items" ytdl--mark-all)
+    ("u" "unmark item(s) at point" ytdl--unmark)
+    ("U" "unmark all marked items" ytdl--unmark-all)
+    ("d" "remove mark items from list" ytdl--delete-marked-items)
+    ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)]])
 
 
 
@@ -712,67 +725,131 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
           (forward-line))))))
 
 
-(defun ytdl--get-item-object()
-  "Get object if highlighted list item."
-  (gethash  (tabulated-list-get-id)
-            ytdl--download-list))
+(defun ytdl--get-item-object(&optional key)
+  "Get object of item at point.
+
+If KEY is provided then get the object with that key in
+`ytdl--download-list'."
+  (let ((key (or key
+                 (tabulated-list-get-id))))
+    (gethash  key
+              ytdl--download-list)))
 
 
 ;; list of ytdl download list commands
-(defun  ytdl--delete-item ()
-  "Delete highlighted list item from list.
 
-If the highlighted item is still being downloaded, then interrupt
+(defun ytdl--delete-item-from-dl-list (key &optional delete-file? no-confirmation)
+  "Delete ITEM from `ytdl--download-list'.
+
+If DELETE-FILE? is non-nil then delete associated file on the
+disk. Else delete item from the download list only.
+
+If NO-CONFIRMATION is nil, then ask user for
+confirmation. Else perform the operation directly."
+
+  (let* ((item (ytdl--get-item-object key))
+         (status (ytdl--list-entry-status item)))
+    (when (or no-confirmation
+              (y-or-n-p (concat "[ytdl] Are you sure to "
+                                (if (string= status "downloading")
+                                    "interrupt this download"
+                                  "delete this item")
+                                "?"
+                                (when (and delete-file?
+                                           (string= status "downloaded"))
+                                  " The associated file will be deleted."))))
+      (when (string= status "downloading")
+        (interrupt-process (ytdl--list-entry-process-id item))
+        (ytdl--eval-mode-line-string -1))
+      (when (and (string= status "downloaded")
+                 delete-file?)
+        (delete-file (ytdl--list-entry-path item)))
+      (remhash key
+               ytdl--download-list))))
+
+
+(defun  ytdl--delete-item-at-point ()
+  "Delete item(s) at point from list.
+
+If the item at point is still being downloaded, then interrupt
 the process.
 
 Note that this function does not delete the eventual file on the
-disk.  See `ytdl--delete-item-and-file' for that feature."
+disk.  See `ytdl--delete-item-and-file-at-point' for that feature."
   (interactive)
-  (let* ((item (ytdl--get-item-object))
-         (status (ytdl--list-entry-status item)))
-    (when (y-or-n-p (concat "[ytdl] Are you sure to "
-                            (if (string= status "downloading")
-                                "interrupt this download"
-                              "remove this item")
-                            "?"))
-      (when (string= status"downloading")
-        (interrupt-process (ytdl--list-entry-process-id item))
-        (ytdl--eval-mode-line-string -1))
-      (remhash (tabulated-list-get-id)
-               ytdl--download-list)
-      (ytdl--refresh-list))))
+  (if (region-active-p)
+      (let ((count (count-lines
+                    (region-beginning)
+                    (region-end))))
+        (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+                                (int-to-string count)
+                                " items?"))
+          (save-mark-and-excursion
+            (goto-char (region-beginning))
+            (dotimes (_ count)
+              (ytdl--delete-item-from-dl-list (tabulated-list-get-id) nil t)
+              (forward-line)))))
+    (ytdl--delete-item-from-dl-list (tabulated-list-get-id)))
+  (ytdl--refresh-list))
 
 
-(defun ytdl--delete-item-and-file()
-  "Delete item at point from list and associated file.
+(defun ytdl--delete-item-and-file-at-point ()
+  "Delete item(s) at point from list and associated file.
 
 If the item at point is still being downloaded, then interrupt
 the process."
   (interactive)
-  (let* ((item (ytdl--get-item-object))
-         (status (ytdl--list-entry-status item)))
-    (when (y-or-n-p (concat "[ytdl] Are you sure to "
-                            (if (string= status "downloading")
-                                "interrupt this download"
-                              "delete this item")
-                            "?"
-                            (when (string= status "downloaded")
-                              " The associated file will be deleted.")))
-      (when (string= status "downloading")
-        (interrupt-process (ytdl--list-entry-process-id item))
-        (ytdl--eval-mode-line-string -1)))
-    (when (string= status "downloaded")
-      (delete-file (ytdl--list-entry-path item)))
-    (remhash (tabulated-list-get-id)
-             ytdl--download-list)
-    (ytdl--refresh-list)))
+  (if (region-active-p)
+      (let ((count (count-lines
+                    (region-beginning)
+                    (region-end))))
+        (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+                                (int-to-string count)
+                                " items?"
+                                "The associated files will be deleted as well."))
+          (save-mark-and-excursion
+            (goto-char (region-beginning))
+            (dotimes (_ count)
+              (ytdl--delete-item-from-dl-list (tabulated-list-get-id) t t)
+              (forward-line)))))
+    (ytdl--delete-item-from-dl-list (tabulated-list-get-id) t))
+  (ytdl--refresh-list))
+
+
+(defun ytdl--delete-marked-items ()
+  "Delete marked item(s) from download list."
+  (interactive)
+  (if  ytdl--marked-items
+      (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+                              (int-to-string (length ytdl--marked-items))
+                              " item(s)?"))
+        (dolist (key ytdl--marked-items)
+          (ytdl--delete-item-from-dl-list key nil t))
+        (setq ytdl--marked-items '())
+        (ytdl--refresh-list))
+    (ytdl--message "No marked item.")))
+
+
+(defun ytdl--delete-marked-items-and-files ()
+  "Delete marked item(s) from download list and associated file(s)."
+  (interactive)
+  (if ytdl--marked-items
+      (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+                              (int-to-string (length ytdl--marked-items))
+                              " item(s)?"
+                              "The associated files will be deleted as well."))
+        (dolist (key ytdl--marked-items)
+          (ytdl--delete-item-from-dl-list key t t))
+        (setq ytdl--marked-items '())
+        (ytdl--refresh-list))
+    (ytdl--message "No marked item.")))
 
 
 (defun ytdl--open-item()
   "Open item at point in media player.
 
-To configure the media player for `ytdl', see
-`ytdl-media-player'."
+                          To configure the media player for `ytdl', see
+                          `ytdl-media-player'."
   (interactive)
   (let ((item (ytdl--get-item-object)))
     (if (not (string= (ytdl--list-entry-status item)
@@ -805,6 +882,75 @@ To configure the media player for `ytdl', see
        (concat "Video is "
                (ytdl--list-entry-status item)
                ".")))))
+
+
+(defun ytdl--mark-at-point (&optional count)
+  "Mark item at point"
+  (interactive "p")
+  (let ((count (or (abs count) 1)))
+    (dotimes (_ count)
+      (when (tabulated-list-get-id)
+        (setq ytdl--marked-items (append ytdl--marked-items (list (tabulated-list-get-id))))
+        (tabulated-list-put-tag "*")
+        (forward-line)))))
+
+(setq ytdl--marked-items '())
+
+(defun ytdl--unmark-at-point (&optional count)
+  "Mark item at point"
+  (interactive "p")
+  (let ((count (or (abs count) 1)))
+    (dotimes (_ count)
+      (when (tabulated-list-get-id)
+        (message (tabulated-list-get-id))
+        (setq ytdl--marked-items (remove (tabulated-list-get-id) ytdl--marked-items))
+        (tabulated-list-put-tag "")
+        (forward-line)))))
+
+(defun ytdl--mark (&optional count)
+  "Mark items.
+
+With numeric argument, mark that many times.
+When region is active, mark all entries in region."
+  (interactive "p")
+  (if (region-active-p)
+      (let ((count (count-lines
+                    (region-beginning)
+                    (region-end))))
+        (save-mark-and-excursion
+          (goto-char (region-beginning))
+          (ytdl--mark-at-point count)))
+    (ytdl--mark-at-point count)))
+
+(defun ytdl--unmark (&optional count)
+  "Unmark items.
+
+With numeric argument, mark that many times.
+When region is active, mark all entries in region."
+  (interactive "p")
+  (if (region-active-p)
+      (let ((count (count-lines
+                    (region-beginning)
+                    (region-end))))
+        (save-mark-and-excursion
+          (goto-char (region-beginning))
+          (ytdl--unmark-at-point count)))
+    (ytdl--unmark-at-point count)))
+
+
+(defun ytdl--mark-all ()
+  "Mmark all marked items."
+  (interactive)
+  (maphash (lambda (key item)
+             (setq ytdl--marked-items (append ytdl--marked-items `(,key))))
+           ytdl--download-list)
+  (ytdl--refresh-list))
+
+(defun ytdl--unmark-all ()
+  "Unmark all marked items."
+  (interactive)
+  (setq ytdl--marked-items '())
+  (ytdl--refresh-list))
 
 (provide 'ytdl)
 ;;; ytdl.el ends here
