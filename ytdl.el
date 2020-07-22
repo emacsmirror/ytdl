@@ -194,6 +194,7 @@ Keys are UUID.
       (define-key map "o" #'ytdl--open-item)
       (define-key map "k" #'ytdl--delete-item)
       (define-key map "K" #'ytdl--delete-item-and-file)
+      (define-key map "e" #'ytdl--show-error)
       (define-key map "y" #'ytdl--copy-item-path)))
   "Keymap for `ytdl--dl-list-mode'.")
 
@@ -210,6 +211,7 @@ Keys are UUID.
   type
   path
   size
+  error
   process-id)
 
 
@@ -481,6 +483,9 @@ DL-TYPE is the download type, see `ytdl-download-types'."
                    (setf (ytdl--list-entry-status (gethash uuid
                                                            ytdl--download-list))
                          "error")
+                   (setf (ytdl--list-entry-error (gethash uuid
+                                                          ytdl--download-list))
+                         response)
                    (ytdl--eval-mode-line-string -1)
                    (message (concat ytdl-message-start
                                     response)))
@@ -638,6 +643,7 @@ The last downloaded file is stored in
     ("o" "open file in media player" ytdl--open-item)
     ("k" "remove from list" ytdl--delete-item)
     ("K" "remove from list and delete file" ytdl--delete-item-and-file )
+    ("e" "show eventual error(s)" ytdl--show-error)
     ("y" "copy file path" ytdl--copy-item-path)]])
 
 
@@ -787,6 +793,18 @@ To configure the media player for `ytdl', see
         (ytdl--message (concat "File path is: " path ". Added to kill-ring."))
         (kill-new path)))))
 
+
+(defun ytdl--show-error()
+  "Show eventual errors for item at point."
+  (interactive)
+  (let ((item (ytdl--get-item-object)))
+    (ytdl--message
+     (if (string= (ytdl--list-entry-status item)
+                  "error")
+         (ytdl--list-entry-error item)
+       (concat "Video is "
+               (ytdl--list-entry-status item)
+               ".")))))
 
 (provide 'ytdl)
 ;;; ytdl.el ends here
