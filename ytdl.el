@@ -206,6 +206,8 @@ Keys are UUID.
       (define-key map "U" #'ytdl--unmark-all)
       (define-key map "C" #'ytdl--clear-list)
       (define-key map "c" #'ytdl--clear-downloaded)
+      (define-key map "r" #'ytdl--relaunch)
+      (define-key map "R" #'ytdl--relaunch-all-errors)
       (define-key map "y" #'ytdl--copy-item-path)))
   "Keymap for `ytdl--dl-list-mode'.")
 
@@ -223,6 +225,7 @@ Keys are UUID.
   path
   size
   error
+  url
   process-id)
 
 (defvar ytdl--marked-items
@@ -514,6 +517,7 @@ DL-TYPE is the download type, see `ytdl-download-types'."
                                          :path nil
                                          :size "?"
                                          :error nil
+                                         :url url
                                          :process-id process-id)
              ytdl--download-list))
   (ytdl--refresh-list))
@@ -665,7 +669,9 @@ The last downloaded file is stored in
     ("d" "remove mark items from list" ytdl--delete-marked-items)
     ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)
     ("c" "clear downloaded items" ytdl--clear-downloaded )
-    ("C" "clear download list" ytdl--clear-list)]])
+    ("C" "clear download list" ytdl--clear-list)]
+   [("r" "relaunch item at point" ytdl--relaunch)
+    ("R" "relaunch all items with errors" ytdl--relaunch-all-errors)]])
 
 
 (defun ytdl--uuid (url)
@@ -889,6 +895,42 @@ the process."
        (concat "Video is "
                (ytdl--list-entry-status item)
                ".")))))
+
+(defun ytdl--relaunch(&optional key)
+  "Relaunch a download when error(s) occurred."
+  (interactive)
+  (let* ((key (or key
+                  (tabulated-list-get-id)))
+         (item (ytdl--get-item-object key))
+         (status (ytdl--list-entry-status item)))
+    (if (not (string= status "error"))
+        (ytdl--message (concat "Item at point is "
+                               status))
+      (let ((dl-type (mapcan (lambda(x)
+                               (when (string= (nth 0 x)
+                                              (ytdl--list-entry-type item))
+                                 `(,(nth 0 x) ,(nth 2 x) ,(nth 3 x))))
+                             ytdl-download-types)))
+        (ytdl--download-async (ytdl--list-entry-url item)
+                              (concat (nth 1 dl-type)
+                                      "/"
+                                      (ytdl--list-entry-title item))
+                              (nth 2 dl-type)
+                              nil
+                              (nth 0 dl-type)))
+      (ytdl--delete-item-from-dl-list key nil t))))
+
+
+
+(defun ytdl--relaunch-all-errors()
+  "Relaunch all downloads with error."
+  (interactive)
+  (maphash (lambda (key item)
+             (when (string= (ytdl--list-entry-status item)
+                            "error")
+               (ytdl--relaunch key)))
+           ytdl--download-list)
+  (ytdl--refresh-list))
 
 
 (defun ytdl--mark-at-point (&optional count)
