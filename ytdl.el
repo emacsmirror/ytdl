@@ -279,14 +279,14 @@ NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
   (add-to-list 'ytdl-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
-(defun ytdl--run-ytdl-eshell(url destination-folder filename &optional extra-ydl-args)
+(defun ytdl--run-ytdl-eshell(url destination-folder filename &optional extra-ytdl-args)
   "Run ytdl in a new eshell buffer.
 
 URL is the url of the video to download.  DESTINATION-FOLDER is
 the folder where the video will be downloaded.  FILENAME is the
 relative path (from DESTINATION-FOLDER) of the output file.
 
-Optional argument EXTRA-YDL-ARGS is the list of extra arguments
+Optional argument EXTRA-YTDL-ARGS is the list of extra arguments
 to youtube-dl.
 
 This opration is asynchronous."
@@ -303,10 +303,10 @@ This opration is asynchronous."
                     " -o "
                     (shell-quote-argument filename)
                     ".%(ext)s"
-                    (when extra-ydl-args
+                    (when extra-ytdl-args
                       (concat " "
                               (mapconcat #'shell-quote-argument
-                                         extra-ydl-args
+                                         extra-ytdl-args
                                          " ")))))
     (eshell-send-input)))
 
@@ -466,10 +466,10 @@ FILENAME can be a string (i.e. a single file) or a list of strings."
                                          media-player-args))))
 
 
-(defun ytdl--download-async (url filename extra-ydl-args &optional finish-function dl-type)
+(defun ytdl--download-async (url filename extra-ytdl-args &optional finish-function dl-type)
   "Asynchronously download video at URL into FILENAME.
 
-Extra arguments to ytdl can be provided with EXTRA-YDL-ARGS.
+Extra arguments to ytdl can be provided with EXTRA-YTDL-ARGS.
 
 FINISH-FUNCTION is a function that is executed once the file is
 downloaded.  It takes a single argument (file-path).
@@ -486,7 +486,7 @@ DL-TYPE is the download type, see `ytdl-download-types'."
                       url
                       "-o" (concat filename
                                    ".%(ext)s")
-                      extra-ydl-args)
+                      extra-ytdl-args)
                (goto-char (point-min))
                (if (search-forward-regexp "^ERROR:" nil t nil)
                    (progn
@@ -570,9 +570,9 @@ UUID is the key of the list item in `ytdl--download-list'."
          (filename (if no-filename
                        (concat destination-folder "/")
                      (ytdl-get-filename  destination-folder url)))
-         (extra-ydl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type))))
+         (extra-ytdl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type))))
          (run-ytdl? (ytdl--destination-folder-exists-p destination-folder)))
-    (list url filename extra-ydl-args run-ytdl? dl-type-name)))
+    (list url filename extra-ytdl-args run-ytdl? dl-type-name)))
 
 
 (defun ytdl-download-eshell ()
@@ -586,13 +586,13 @@ destination folder and extra arguments, see
   (let* ((out (ytdl--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
-         (extra-ydl-args (nth 2 out))
+         (extra-ytdl-args (nth 2 out))
          (run-ytdl? (nth 3 out)))
     (when run-ytdl?
       (ytdl--run-ytdl-eshell url
                              (file-name-directory filename)
                              (file-name-nondirectory filename)
-                             extra-ydl-args))))
+                             extra-ytdl-args))))
 
 
 (defun ytdl-download ()
@@ -601,13 +601,13 @@ destination folder and extra arguments, see
   (let* ((out (ytdl--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
-         (extra-ydl-args (nth 2 out))
+         (extra-ytdl-args (nth 2 out))
          (run-ytdl? (nth 3 out))
          (dl-type-name (nth 4 out)))
     (when run-ytdl?
       (ytdl--download-async url
                             filename
-                            extra-ydl-args
+                            extra-ytdl-args
                             nil
                             dl-type-name))))
 
@@ -618,7 +618,7 @@ destination folder and extra arguments, see
   (let* ( (out (ytdl--get-args t))
           (url (nth 0 out))
           (folder-path (nth 1 out))
-          (extra-ydl-args (nth 2 out))
+          (extra-ytdl-args (nth 2 out))
           (run-ytdl? (nth 3 out))
           (dl-type-name (nth 4 out)))
     (with-temp-buffer
@@ -633,7 +633,7 @@ destination folder and extra arguments, see
                collect (ytdl--download-async (plist-get video :id)
                                              (concat folder-path
                                                      (replace-regexp-in-string "/" "-" (plist-get video :title)))
-                                             extra-ydl-args
+                                             extra-ytdl-args
                                              nil
                                              dl-type-name)))))
 
@@ -650,7 +650,7 @@ The file is opened with `ytdl-media-player'."
   (let* ((out (ytdl--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
-         (extra-ydl-args (nth 2 out))
+         (extra-ytdl-args (nth 2 out))
          (run-ytdl? (nth 3 out)))
     (unless ytdl-media-player
       (minibuffer-message (concat ytdl-message-start
@@ -663,7 +663,7 @@ The file is opened with `ytdl-media-player'."
     (when run-ytdl?
       (ytdl--download-async url
                             filename
-                            extra-ydl-args
+                            extra-ytdl-args
                             'ytdl--open-file-in-media-player))))
 
 
