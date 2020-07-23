@@ -89,11 +89,6 @@
   :group 'ytdl
   :type 'boolean)
 
-(defcustom ytdl-always-ask-delete-confirmation
-  t
-  "Whether to ask for confirmation when deleting a file."
-  :group 'ytdl
-  :type 'boolean)
 
 (defcustom ytdl-media-player
   "mpv"
@@ -673,21 +668,6 @@ The last downloaded file is stored in
 `ytdl--last-downloaded-file-name'."
   (interactive)
   (ytdl--open-file-in-media-player ytdl--last-downloaded-file-name))
-
-(defun ytdl-delete-last-downloaded-file ()
-  "Delete the last file downloaded though ytdl."
-  (interactive)
-  (when (or (not ytdl-always-ask-delete-confirmation)
-            (y-or-n-p (concat ytdl-message-start
-                              "Are you sure you want to delete the file '"
-                              ytdl--last-downloaded-file-name
-                              "'"
-                              "?")))
-    (delete-file ytdl--last-downloaded-file-name)
-    (minibuffer-message (concat ytdl-message-start
-                                "Deleting file..."))))
-
-
 
 
 ;; ytdl download list
