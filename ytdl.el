@@ -201,6 +201,8 @@ Keys are UUID.
       (define-key map "m" #'ytdl--mark-all)
       (define-key map "u" #'ytdl--unmark)
       (define-key map "U" #'ytdl--unmark-all)
+      (define-key map "C" #'ytdl--clear-list)
+      (define-key map "c" #'ytdl--clear-downloaded)
       (define-key map "y" #'ytdl--copy-item-path)))
   "Keymap for `ytdl--dl-list-mode'.")
 
@@ -657,8 +659,9 @@ The last downloaded file is stored in
     ("u" "unmark item(s) at point" ytdl--unmark)
     ("U" "unmark all marked items" ytdl--unmark-all)
     ("d" "remove mark items from list" ytdl--delete-marked-items)
-    ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)]])
-
+    ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)
+    ("c" "clear downloaded items" ytdl--clear-downloaded )
+    ("C" "clear download list" ytdl--clear-list)]])
 
 
 (defun ytdl--uuid (url)
@@ -950,6 +953,25 @@ When region is active, mark all entries in region."
   "Unmark all marked items."
   (interactive)
   (setq ytdl--marked-items '())
+  (ytdl--refresh-list))
+
+(defun ytdl--clear-downloaded ()
+  "Delete downloaded items from list."
+  (interactive)
+  (maphash (lambda (key item)
+             (when (string= (ytdl--list-entry-status item)
+                            "downloaded")
+               (remhash key ytdl--download-list)))
+           ytdl--download-list)
+  (ytdl--refresh-list))
+
+
+
+(defun ytdl--clear-list ()
+  "Clear ytdl download list."
+  (interactive)
+  (setq ytdl--download-list
+        (clrhash ytdl--download-list))
   (ytdl--refresh-list))
 
 (provide 'ytdl)
