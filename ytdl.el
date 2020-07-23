@@ -720,6 +720,10 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
           (url-encode-url (format-time-string "%Y-%m-%d-%T"))))
 
 
+(defun ytdl--reset-marked-item-list ()
+  "Reset `ytdl--marked-item' to empty list."
+  (setq ytdl--marked-items '()))
+
 (define-derived-mode ytdl--dl-list-mode tabulated-list-mode "ytdl-mode"
   "Major mode for `ytdl' download list."
   (hl-line-mode)
@@ -876,7 +880,7 @@ the process."
                               " item(s)?"))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key nil t))
-        (setq ytdl--marked-items '())
+        (ytdl--reset-marked-item-list)
         (ytdl--refresh-list))
     (ytdl--message "No marked item.")))
 
@@ -891,7 +895,7 @@ the process."
                               "The associated files will be deleted as well."))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key t t))
-        (setq ytdl--marked-items '())
+        (ytdl--reset-marked-item-list)
         (ytdl--refresh-list))
     (ytdl--message "No marked item.")))
 
@@ -922,7 +926,7 @@ To configure the media player for `ytdl', see
           (let ((item (ytdl--get-item-object key)))
             (when (string= (ytdl--list-entry-status item) "downloaded")
               (add-to-list 'files-to-open (ytdl--list-entry-path item)))))
-        (setq ytdl--marked-items '())
+        (ytdl--reset-marked-item-list)
         (ytdl--message "Opening files")
         (ytdl--open-file-in-media-player files-to-open))
     (ytdl--message "No marked items.")))
