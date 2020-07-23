@@ -6,7 +6,7 @@
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ytdl
 ;; Version: 1.3.0
-;; Package-Requires: ((emacs "26.1") (async "1.9.4") (transient "0.2.0"))
+;; Package-Requires: ((emacs "26.1") (async "1.9.4") (transient "0.2.0") (dash "2.17.0"))
 ;; Keywords: comm, emulations, multimedia
 
 ;; This file is not part of GNU Emacs.
@@ -49,6 +49,8 @@
 (require 'transient)
 (require 'cl-lib)
 (require 'time-stamp)
+(require 'json)
+(require 'dash)
 
 
 (defgroup ytdl
@@ -532,7 +534,8 @@ DL-TYPE is the download type, see `ytdl-download-types'."
 (defun ytdl--async-download-finished (filename uuid)
   "Generic function run after download is completed.
 
-FILENAME is the absolute path of the file downloaded by`ytdl--download-async'.  See `ytdl--download-async' for more
+FILENAME is the absolute path of the file downloaded
+by`ytdl--download-async'.  See `ytdl--download-async' for more
 details.
 
 UUID is the key of the list item in `ytdl--download-list'."
@@ -554,7 +557,10 @@ UUID is the key of the list item in `ytdl--download-list'."
 
 
 (defun ytdl--get-args (&optional no-filename)
-  "Query user for ytdl arguments."
+  "Query user for ytdl arguments.
+
+NO-FILENAME is non-nil, then don't query the user for the
+filename."
   (let* ((url-at-point (thing-at-point 'url t))
          (url (or url-at-point
                   (read-from-minibuffer (concat ytdl-message-start
@@ -620,8 +626,7 @@ destination folder and extra arguments, see
                     "--dump-json" "--ignore-config" "--flat-playlist"
                     url)
       (goto-char (point-min))
-      (cl-loop with json-object-type = 'plist
-               for index upfrom 1
+      (cl-loop for index upfrom 1
                for video = (ignore-errors (json-read))
                while video
                collect (ytdl--download-async (plist-get video :id)
@@ -716,10 +721,11 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
           ("Status" 15 nil)
           ("Size" 10 nil)
           ("Download type" 30 nil)])
-  (add-hook 'tabulated-list-revert-hook 'ytdl--refresh-list nil t))
+  (add-hook 'tabulated-list-revert-hook #'ytdl--refresh-list nil t))
 
 
 (defun ytdl--format-item-list()
+  "Format the download list for `tabulated-list-mode'."
   (let ((item-list '()))
     (maphash (lambda (key item)
                (setq item-list (append item-list
@@ -730,7 +736,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
 
 
 (defun ytdl--item-to-vector (item)
-  "Convert item into vector for `tabulated-list-mode'."
+  "Convert ITEM into vector for `tabulated-list-mode'."
   (vector (ytdl--list-entry-title  item)
           (ytdl--list-entry-status item)
           (ytdl--list-entry-size item)
@@ -738,6 +744,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
 
 
 (defun ytdl-show-list ()
+  "Open a new buffer and display `ytdl' download list."
   (interactive)
   (pop-to-buffer (with-current-buffer (get-buffer-create ytdl-dl-buffer-name)
                    (ytdl--dl-list-mode)
@@ -776,7 +783,7 @@ If KEY is provided then get the object with that key in
 ;; list of ytdl download list commands
 
 (defun ytdl--delete-item-from-dl-list (key &optional delete-file? no-confirmation)
-  "Delete ITEM from `ytdl--download-list'.
+  "Delete KEY from `ytdl--download-list'.
 
 If DELETE-FILE? is non-nil then delete associated file on the
 disk. Else delete item from the download list only.
@@ -907,7 +914,8 @@ To configure the media player for `ytdl', see
         (dolist (key ytdl--marked-items)
           (let ((item (ytdl--get-item-object key)))
             (when (string= (ytdl--list-entry-status item) "downloaded")
-              (add-to-list 'files-to-open (ytdl--list-entry-path item)))))
+              (setq files-to-open (append files-to-open
+                                          (list (ytdl--list-entry-path item)))))))
         (ytdl--reset-marked-item-list)
         (ytdl--message "Opening files")
         (ytdl--open-file-in-media-player files-to-open))
@@ -939,7 +947,9 @@ To configure the media player for `ytdl', see
                ".")))))
 
 (defun ytdl--relaunch(&optional key)
-  "Relaunch a download when error(s) occurred."
+  "Relaunch a download when error(s) occurred.
+
+If KEY is non-nil, then re-launch the download of KEY."
   (interactive)
   (let* ((key (or key
                   (tabulated-list-get-id)))
@@ -976,7 +986,9 @@ To configure the media player for `ytdl', see
 
 
 (defun ytdl--mark-at-point (&optional count)
-  "Mark item at point"
+  "Mark item at point.
+
+If COUNT is non-nil, then mark the COUNT following items."
   (interactive "p")
   (let ((count (or (abs count) 1)))
     (dotimes (_ count)
@@ -985,10 +997,11 @@ To configure the media player for `ytdl', see
         (tabulated-list-put-tag "*")
         (forward-line)))))
 
-(setq ytdl--marked-items '())
 
 (defun ytdl--unmark-at-point (&optional count)
-  "Mark item at point"
+  "Mark item at point.
+
+If COUNT is non-nil, then unmark the COUNT following items."
   (interactive "p")
   (let ((count (or (abs count) 1)))
     (dotimes (_ count)
@@ -1000,7 +1013,7 @@ To configure the media player for `ytdl', see
 (defun ytdl--mark (&optional count)
   "Mark items.
 
-With numeric argument, mark that many times.
+With numeric argument (COUNT), mark that many times.
 When region is active, mark all entries in region."
   (interactive "p")
   (if (region-active-p)
@@ -1012,10 +1025,11 @@ When region is active, mark all entries in region."
           (ytdl--mark-at-point count)))
     (ytdl--mark-at-point count)))
 
+
 (defun ytdl--unmark (&optional count)
   "Unmark items.
 
-With numeric argument, mark that many times.
+With numeric argument (COUNT), mark that many times.
 When region is active, mark all entries in region."
   (interactive "p")
   (if (region-active-p)
@@ -1029,9 +1043,9 @@ When region is active, mark all entries in region."
 
 
 (defun ytdl--mark-all ()
-  "Mmark all marked items."
+  "Mark all marked items."
   (interactive)
-  (maphash (lambda (key item)
+  (maphash (lambda (key _)
              (setq ytdl--marked-items (append ytdl--marked-items `(,key))))
            ytdl--download-list)
   (ytdl--refresh-list))
@@ -1045,6 +1059,7 @@ When region is active, mark all entries in region."
 
 
 (defun ytdl--mark-items-filter ()
+  "Mark all items matching a regular expression."
   (interactive)
   (ytdl--reset-marked-item-list)
   (let ((regexp  (read-from-minibuffer (concat "[ytdl] Regexp to match "
@@ -1080,16 +1095,10 @@ When region is active, mark all entries in region."
   (when (y-or-n-p (concat ytdl-message-start
                           "Do you want to clear the entire list?"
                           "Processes currently running will be interreupted."))
-    (maphash (lambda (key item)
+    (maphash (lambda (key _)
                (ytdl--delete-item-from-dl-list key nil t))
              ytdl--download-list)
     (ytdl--refresh-list)))
 
 (provide 'ytdl)
 ;;; ytdl.el ends here
-
-
-(ytdl-add-field-in-download-type-list "test"
-                                      "t"
-                                      (expand-file-name "~/videos/test")
-                                      nil)
