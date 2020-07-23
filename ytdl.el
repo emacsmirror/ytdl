@@ -557,7 +557,7 @@ UUID is the key of the list item in `ytdl--download-list'."
                          filename)))
 
 
-(defun ytdl--get-args ()
+(defun ytdl--get-args (&optional no-filename)
   "Query user for ytdl arguments."
   (let* ((url-at-point (thing-at-point 'url t))
          (url (or url-at-point
@@ -567,7 +567,9 @@ UUID is the key of the list item in `ytdl--download-list'."
          (dl-type (ytdl--get-download-type))
          (dl-type-name (nth 0 dl-type))
          (destination-folder (ytdl--eval-field (nth 1 dl-type)))
-         (filename (ytdl-get-filename  destination-folder url))
+         (filename (if no-filename
+                       (concat destination-folder "/")
+                     (ytdl-get-filename  destination-folder url)))
          (extra-ydl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type))))
          (run-ytdl? (ytdl--destination-folder-exists-p destination-folder)))
     (list url filename extra-ydl-args run-ytdl? dl-type-name)))
@@ -608,6 +610,33 @@ destination folder and extra arguments, see
                             extra-ydl-args
                             nil
                             dl-type-name))))
+
+
+(defun ytdl-download-playlist ()
+  "Download asynchronously playlist from a web server."
+  (interactive)
+  (let* ( (out (ytdl--get-args t))
+          (url (nth 0 out))
+          (folder-path (nth 1 out))
+          (extra-ydl-args (nth 2 out))
+          (run-ytdl? (nth 3 out))
+          (dl-type-name (nth 4 out)))
+    (with-temp-buffer
+      (call-process "youtube-dl" nil '(t nil) nil
+                    "--dump-json" "--ignore-config" "--flat-playlist"
+                    url)
+      (goto-char (point-min))
+      (cl-loop with json-object-type = 'plist
+               for index upfrom 1
+               for video = (ignore-errors (json-read))
+               while video
+               collect (ytdl--download-async (plist-get video :id)
+                                             (concat folder-path
+                                                     (replace-regexp-in-string "/" "-" (plist-get video :title)))
+                                             extra-ydl-args
+                                             nil
+                                             dl-type-name)))))
+
 
 
 (defun ytdl-download-open ()
