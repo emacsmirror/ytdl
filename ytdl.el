@@ -694,24 +694,24 @@ The last downloaded file is stored in
 (transient-define-prefix ytdl--dispatch ()
   "Invoke a ytdl command from a list of available commands."
   ["ytdl-download-list commands"
-   [("g" "refresh" ytdl--refresh-list )
+   [("g" "refresh" ytdl--refresh-list)
+    ("y" "copy file path" ytdl--copy-item-path)
     ("o" "open file in media player" ytdl--open-item-at-point)
     ("O" "open marked items in media player" ytdl--open-marked-items)
-    ("k" "remove from list" ytdl--delete-item-at-point )
-    ("K" "remove from list and delete file" ytdl--delete-item-and-file-at-point )
-    ("e" "show eventual error(s)" ytdl--show-error)
-    ("y" "copy file path" ytdl--copy-item-path)]
+    ("k" "remove from list" ytdl--delete-item-at-point)
+    ("K" "remove from list and delete file" ytdl--delete-item-and-file-at-point)]
    [("m" "mark item(s) at point" ytdl--mark)
     ("M" "mark all items" ytdl--mark-all)
     ("u" "unmark item(s) at point" ytdl--unmark)
     ("U" "unmark all marked items" ytdl--unmark-all)
-    ("d" "remove mark items from list" ytdl--delete-marked-items)
-    ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)
-    ("c" "clear downloaded items" ytdl--clear-downloaded )
-    ("C" "clear download list" ytdl--clear-list)]
-   [("r" "relaunch item at point" ytdl--relaunch)
-    ("R" "relaunch all items with errors" ytdl--relaunch-all-errors)
-    ("^" "mark items matching regexp" ytdl--mark-items-filter)]])
+    ("^" "mark items matching regexp" ytdl--mark-items-filter)
+    ("e" "show eventual error(s)" ytdl--show-error)]
+   [ ("r" "relaunch item at point" ytdl--relaunch)
+     ("R" "relaunch all items with errors" ytdl--relaunch-all-errors)
+     ("d" "remove mark items from list" ytdl--delete-marked-items)
+     ("D" "remove mark items from list and delete files" ytdl--delete-marked-items-and-files)
+     ("c" "clear downloaded items" ytdl--clear-downloaded )
+     ("C" "clear download list" ytdl--clear-list)]])
 
 
 (defun ytdl--uuid (url)
