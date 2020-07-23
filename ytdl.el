@@ -974,8 +974,9 @@ When region is active, mark all entries in region."
 (defun ytdl--clear-list ()
   "Clear ytdl download list."
   (interactive)
-  (setq ytdl--download-list
-        (clrhash ytdl--download-list))
+  (maphash (lambda (key item)
+             (ytdl--delete-item-from-dl-list key nil t))
+           ytdl--download-list)
   (ytdl--refresh-list))
 
 (provide 'ytdl)
