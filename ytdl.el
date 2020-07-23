@@ -194,7 +194,8 @@ Keys are UUID.
     (prog1 map
       (define-key map "?" #'ytdl--dispatch)
       (define-key map "g" #'ytdl--refresh-list)
-      (define-key map "o" #'ytdl--open-item)
+      (define-key map "o" #'ytdl--open-item-at-point)
+      (define-key map "O" #'ytdl--open-marked-items)
       (define-key map "k" #'ytdl--delete-item-at-point)
       (define-key map "K" #'ytdl--delete-item-and-file-at-point)
       (define-key map "d" #'ytdl--delete-marked-items)
@@ -448,12 +449,21 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
 
 
 (defun ytdl--open-file-in-media-player (filename)
-  "Open FILENAME in `ytdl-media-player'."
-  (start-process-shell-command ytdl-media-player
-                               nil
-                               (concat ytdl-media-player
-                                       " "
-                                       (shell-quote-argument filename))))
+  "Open FILENAME in `ytdl-media-player'.
+
+FILENAME can be a string (i.e. a single file) or a list of strings."
+  (let (media-player-args)
+    (if (equal (type-of filename) 'string)
+        (setq media-player-args (shell-quote-argument filename))
+      (setq media-player-args (mapconcat (lambda (file)
+                                           (shell-quote-argument file))
+                                         filename
+                                         " ")))
+    (start-process-shell-command ytdl-media-player
+                                 nil
+                                 (concat ytdl-media-player
+                                         " "
+                                         media-player-args))))
 
 
 (defun ytdl--download-async (url filename extra-ydl-args &optional finish-function dl-type)
@@ -657,7 +667,8 @@ The last downloaded file is stored in
   "Invoke a ytdl command from a list of available commands."
   ["ytdl-download-list commands"
    [("g" "refresh" ytdl--refresh-list )
-    ("o" "open file in media player" ytdl--open-item)
+    ("o" "open file in media player" ytdl--open-item-at-point)
+    ("O" "open marked items in media player" ytdl--open-marked-items)
     ("k" "remove from list" ytdl--delete-item-at-point )
     ("K" "remove from list and delete file" ytdl--delete-item-and-file-at-point )
     ("e" "show eventual error(s)" ytdl--show-error)
@@ -858,11 +869,11 @@ the process."
     (ytdl--message "No marked item.")))
 
 
-(defun ytdl--open-item()
+(defun ytdl--open-item-at-point()
   "Open item at point in media player.
 
-                          To configure the media player for `ytdl', see
-                          `ytdl-media-player'."
+To configure the media player for `ytdl', see
+`ytdl-media-player'."
   (interactive)
   (let ((item (ytdl--get-item-object)))
     (if (not (string= (ytdl--list-entry-status item)
@@ -870,6 +881,24 @@ the process."
         (ytdl--message "File is not downloaded yet...")
       (ytdl--message "Opening file")
       (ytdl--open-file-in-media-player (ytdl--list-entry-path item)))))
+
+
+(defun ytdl--open-marked-items()
+  "Open marked items.
+
+To configure the media player for `ytdl', see
+`ytdl-media-player'."
+  (interactive)
+  (if ytdl--marked-items
+      (let ((files-to-open '()))
+        (dolist (key ytdl--marked-items)
+          (let ((item (ytdl--get-item-object key)))
+            (when (string= (ytdl--list-entry-status item) "downloaded")
+              (add-to-list 'files-to-open (ytdl--list-entry-path item)))))
+        (setq ytdl--marked-items '())
+        (ytdl--message "Opening files")
+        (ytdl--open-file-in-media-player files-to-open))
+    (ytdl--message "No marked items.")))
 
 
 (defun  ytdl--copy-item-path ()
