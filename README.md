@@ -33,11 +33,14 @@ Add the following line to your `init.el`:
 Six interactive functions are available:
 - `ytdl-download-eshell`, `ytdl-download` and `ytdl-download-open`
   that can be used to download a media file from an url.
+- `ytdl-download-playlist` to download a playlist.
 - `ytdl-open-last-downloaded-file` to open the last file downloaded
   with `ytdl` in the configured media player.
-- `ytdl-delete-last-downloaded-file` to delete the last file
-  downloaded by `ytdl`.
 - `ytdl-show-list` to show the dowload list.
+
+Note that `ytdl-download`, `ytdl-download-open` and
+`ytdl-download-playlist` add the file in the `ytdl` download list that
+can be visualized with `ytdl-show-list`.
 
 ### URL
 
@@ -54,12 +57,28 @@ and files currently being downloaded.
 
 Several actions can be carried out within the download list buffer:
 
+
+- `?`: Show the help menu with all the commands.
 - `g`: Refresh the list
 - `o`: Open the file in media player
-- `k`: Remove item from the list (the file will not be affected)
-- `K`: Remove item from the list and delete the associated file from the disk
+- `O`: Open all marked files in media player
+- `k`: Remove item(s) at point from the list (the file will not be
+  affected)
+- `K`: Remove item(s) at point from the list and delete the associated
+  file from the disk
 - `y`: Copy path to file into clipboard
-- `?`: Show the help menu with all the commands.
+- `m`: mMrk item(s) at point
+- `M`: Mark all items
+- `u`: Unmark item(s) at point
+- `U`: Unmark all items
+- `^`: Mark items matching a regexp (to be entered in the mini-buffer)
+- `e`: Show eventual error(s)
+- `r`: Relaunch item at point
+- `R`: Relaunch all items with error(s)
+- `d`: remove mark item(s)
+- `D`: Remove mark item(s) and associated files
+- `c`: Clear downloaded items from list
+- `C`: Clear list
 
 
 ### Demo
@@ -130,10 +149,6 @@ This behavior can be changed by changing `ytdl-always-query-default-filename` to
 (setq ytdl-always-query-default-filename nil)
 ```
 
-- To avoid confirmation message when using
-`ytdl-delete-last-downloaded-file`, set the value of
-`ytdl-always-ask-delete-confirmation` to nil
-
 - Set the media player (used by `ytdl-download-open`) by
   changing the variable `ytdl-media-player`. Default value is
   `mpv`.
@@ -169,8 +184,7 @@ Here is an example of configuration you can add to your `init.el`:
 
 (setq ytdl-music-folder (expand-file-name "~/music")
       ytdl-video-folder (expand-file-name "~/videos")
-      ytdl-always-query-default-filename nil
-      ytdl-always-ask-delete-confirmation t)
+      ytdl-always-query-default-filename 'never)
 
 (ytdl-add-field-in-download-type-list "podcasts"
                                        "p"
