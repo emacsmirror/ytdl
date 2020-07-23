@@ -203,6 +203,7 @@ Keys are UUID.
       (define-key map "e" #'ytdl--show-error)
       (define-key map "m" #'ytdl--mark)
       (define-key map "M" #'ytdl--mark-all)
+      (define-key map "^" #'ytdl--mark-items-filter)
       (define-key map "u" #'ytdl--unmark)
       (define-key map "U" #'ytdl--unmark-all)
       (define-key map "C" #'ytdl--clear-list)
@@ -709,7 +710,8 @@ The last downloaded file is stored in
     ("c" "clear downloaded items" ytdl--clear-downloaded )
     ("C" "clear download list" ytdl--clear-list)]
    [("r" "relaunch item at point" ytdl--relaunch)
-    ("R" "relaunch all items with errors" ytdl--relaunch-all-errors)]])
+    ("R" "relaunch all items with errors" ytdl--relaunch-all-errors)
+    ("^" "mark items matching regexp" ytdl--mark-items-filter)]])
 
 
 (defun ytdl--uuid (url)
@@ -1060,6 +1062,23 @@ When region is active, mark all entries in region."
   (interactive)
   (setq ytdl--marked-items '())
   (ytdl--refresh-list))
+
+
+(defun ytdl--mark-items-filter ()
+  (interactive)
+  (ytdl--reset-marked-item-list)
+  (let ((regexp  (read-from-minibuffer (concat "[ytdl] Regexp to match "
+                                               "(titles and download types will be matched): "))))
+    (maphash (lambda (key item)
+               (with-temp-buffer
+                 (insert (concat (ytdl--list-entry-title item)
+                                 "\n"
+                                 (ytdl--list-entry-type item)))
+                 (goto-char (point-min))
+                 (when (search-forward-regexp regexp nil t)
+                   (add-to-list 'ytdl--marked-items key))))
+             ytdl--download-list)
+    (ytdl--refresh-list)))
 
 
 (defun ytdl--clear-downloaded ()
