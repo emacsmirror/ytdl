@@ -33,7 +33,7 @@
 ;; YouTube and a few more sites.  More information at
 ;; https://yt-dl.org.
 ;;
-;; youtube-dl supports many more sites: PeeTube, BBC, IMDB,
+;; youtube-dl supports many more sites: PeerTube, BBC, IMDB,
 ;; InternetVideoArchive (non-exhaustive list)
 ;;
 ;; * Setup
@@ -202,7 +202,7 @@ Keys are UUID.
       (define-key map "D" #'ytdl--delete-marked-items-and-files)
       (define-key map "e" #'ytdl--show-error)
       (define-key map "m" #'ytdl--mark)
-      (define-key map "m" #'ytdl--mark-all)
+      (define-key map "M" #'ytdl--mark-all)
       (define-key map "u" #'ytdl--unmark)
       (define-key map "U" #'ytdl--unmark-all)
       (define-key map "C" #'ytdl--clear-list)
@@ -1009,7 +1009,6 @@ To configure the media player for `ytdl', see
   (let ((count (or (abs count) 1)))
     (dotimes (_ count)
       (when (tabulated-list-get-id)
-        (message (tabulated-list-get-id))
         (setq ytdl--marked-items (remove (tabulated-list-get-id) ytdl--marked-items))
         (tabulated-list-put-tag "")
         (forward-line)))))
@@ -1053,31 +1052,43 @@ When region is active, mark all entries in region."
            ytdl--download-list)
   (ytdl--refresh-list))
 
+
 (defun ytdl--unmark-all ()
   "Unmark all marked items."
   (interactive)
   (setq ytdl--marked-items '())
   (ytdl--refresh-list))
 
+
 (defun ytdl--clear-downloaded ()
   "Delete downloaded items from list."
   (interactive)
-  (maphash (lambda (key item)
-             (when (string= (ytdl--list-entry-status item)
-                            "downloaded")
-               (remhash key ytdl--download-list)))
-           ytdl--download-list)
-  (ytdl--refresh-list))
-
+  (when (y-or-n-p (concat ytdl-message-start
+                          "Do you want to clear the list of downloaded items?"))
+    (maphash (lambda (key item)
+               (when (string= (ytdl--list-entry-status item)
+                              "downloaded")
+                 (remhash key ytdl--download-list)))
+             ytdl--download-list)
+    (ytdl--refresh-list)))
 
 
 (defun ytdl--clear-list ()
   "Clear ytdl download list."
   (interactive)
-  (maphash (lambda (key item)
-             (ytdl--delete-item-from-dl-list key nil t))
-           ytdl--download-list)
-  (ytdl--refresh-list))
+  (when (y-or-n-p (concat ytdl-message-start
+                          "Do you want to clear the entire list?"
+                          "Processes currently running will be interreupted."))
+    (maphash (lambda (key item)
+               (ytdl--delete-item-from-dl-list key nil t))
+             ytdl--download-list)
+    (ytdl--refresh-list)))
 
 (provide 'ytdl)
 ;;; ytdl.el ends here
+
+
+(ytdl-add-field-in-download-type-list "test"
+                                      "t"
+                                      (expand-file-name "~/videos/test")
+                                      nil)
