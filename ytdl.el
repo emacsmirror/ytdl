@@ -79,10 +79,13 @@
   :type '(string))
 
 (defcustom ytdl-always-query-default-filename
-  nil
+  'never
   "Whether to always query default-filename to ytdl.
 
- Note that this operation may take a few seconds."
+ Values can be:
+- 'never: never query default filename
+- 'yes-confirm: always query but ask confirmation to user
+- 'yes: always query and use the default filename without confirmation."
   :group 'ytdl
   :type 'boolean)
 
@@ -307,19 +310,17 @@ This opration is asynchronous."
 (defun ytdl--get-default-filename (url)
   "Get default filename from webserver.
 
-Query the dafult-filename of URL using '--get-filename' argument
+Query the default-filename of URL using '--get-filename' argument
 of ytdl."
-  (if ytdl-always-query-default-filename
-      (when (y-or-n-p (concat ytdl-message-start
-                              "Do you want to query the default filename? "
-                              "(This might take a few seconds)"))
-        (with-temp-buffer
-          (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
-          (goto-char (point-min))
-          (search-forward ".")
-          (buffer-substring-no-properties (line-beginning-position)
-                                          (1- (point)))))
-    nil))
+  (if (equal ytdl-always-query-default-filename
+             'never)
+      nil
+    (with-temp-buffer
+      (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
+      (goto-char (point-min))
+      (search-forward ".")
+      (buffer-substring-no-properties (line-beginning-position)
+                                      (1- (point))))))
 
 
 (defun ytdl--get-download-type()
@@ -398,8 +399,11 @@ Returns a valid string:
   (let* ((prompt (concat ytdl-message-start
                          "Filename [no extension]: "))
          (default-filename (ytdl--get-default-filename url))
-         (filename (read-from-minibuffer prompt
-                                         default-filename)))
+         (filename (or (when (equal ytdl-always-query-default-filename
+                                    'yes)
+                         default-filename)
+                       (read-from-minibuffer prompt
+                                             default-filename))))
     (while (or (cl-search "/" filename)
                (and (file-exists-p destination-folder)
                     (let ((filename-completed (file-name-completion

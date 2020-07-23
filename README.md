@@ -118,10 +118,13 @@ configuration file:
 
 ### Additional Customization
 
-- By default, `ytdl` queries the default filename. This operation
-can take a few seconds (depending on the web server).
+- By default, `ytdl` does not query the default filename fom the web
+  server.
 
-To omit this query, add in your `init.el`:
+This behavior can be changed by changing `ytdl-always-query-default-filename` to:
+- 'never (default behavior)
+- 'yes-confirm: query default filenme from teh web server and ask confirmation
+- 'yes: query default filenme from teh web server and use it without confirmation.
 
 ```elisp
 (setq ytdl-always-query-default-filename nil)
