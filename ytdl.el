@@ -570,9 +570,12 @@ UUID is the key of the list item in `ytdl--download-list'."
          (filename (if no-filename
                        (concat destination-folder "/")
                      (ytdl-get-filename  destination-folder url)))
-         (extra-ytdl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type))))
-         (run-ytdl? (ytdl--destination-folder-exists-p destination-folder)))
-    (list url filename extra-ytdl-args run-ytdl? dl-type-name)))
+         (extra-ytdl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type)))))
+    (unless (ytdl--destination-folder-exists-p destination-folder)
+      (error (concat "Destination folder '"
+                     destination-folder
+                     "' does not exist.")))
+    (list url filename extra-ytdl-args dl-type-name)))
 
 
 (defun ytdl-download-eshell ()
@@ -586,13 +589,11 @@ destination folder and extra arguments, see
   (let* ((out (ytdl--get-args))
          (url (nth 0 out))
          (filename (nth 1 out))
-         (extra-ytdl-args (nth 2 out))
-         (run-ytdl? (nth 3 out)))
-    (when run-ytdl?
-      (ytdl--run-ytdl-eshell url
-                             (file-name-directory filename)
-                             (file-name-nondirectory filename)
-                             extra-ytdl-args))))
+         (extra-ytdl-args (nth 2 out)))
+    (ytdl--run-ytdl-eshell url
+                           (file-name-directory filename)
+                           (file-name-nondirectory filename)
+                           extra-ytdl-args)))
 
 
 (defun ytdl-download ()
@@ -602,14 +603,12 @@ destination folder and extra arguments, see
          (url (nth 0 out))
          (filename (nth 1 out))
          (extra-ytdl-args (nth 2 out))
-         (run-ytdl? (nth 3 out))
-         (dl-type-name (nth 4 out)))
-    (when run-ytdl?
-      (ytdl--download-async url
-                            filename
-                            extra-ytdl-args
-                            nil
-                            dl-type-name))))
+         (dl-type-name (nth 3 out)))
+    (ytdl--download-async url
+                          filename
+                          extra-ytdl-args
+                          nil
+                          dl-type-name)))
 
 
 (defun ytdl-download-playlist ()
@@ -619,8 +618,7 @@ destination folder and extra arguments, see
           (url (nth 0 out))
           (folder-path (nth 1 out))
           (extra-ytdl-args (nth 2 out))
-          (run-ytdl? (nth 3 out))
-          (dl-type-name (nth 4 out)))
+          (dl-type-name (nth 3 out)))
     (with-temp-buffer
       (call-process "youtube-dl" nil '(t nil) nil
                     "--dump-json" "--ignore-config" "--flat-playlist"
@@ -651,7 +649,7 @@ The file is opened with `ytdl-media-player'."
          (url (nth 0 out))
          (filename (nth 1 out))
          (extra-ytdl-args (nth 2 out))
-         (run-ytdl? (nth 3 out)))
+         (dl-type (nth 3 out)))
     (unless ytdl-media-player
       (minibuffer-message (concat ytdl-message-start
                                   "No media player is set up. See `ytdl-media-player'.")))
@@ -660,11 +658,11 @@ The file is opened with `ytdl-media-player'."
                                   "Program "
                                   ytdl-media-player
                                   " cannot be found. Operation aborted.")))
-    (when run-ytdl?
-      (ytdl--download-async url
-                            filename
-                            extra-ytdl-args
-                            'ytdl--open-file-in-media-player))))
+    (ytdl--download-async url
+                          filename
+                          extra-ytdl-args
+                          'ytdl--open-file-in-media-player
+                          dl-type)))
 
 
 (defun ytdl-open-last-downloaded-file ()
