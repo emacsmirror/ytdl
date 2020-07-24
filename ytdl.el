@@ -821,7 +821,8 @@ confirmation. Else perform the operation directly."
                  delete-file?)
         (delete-file (ytdl--list-entry-path item)))
       (remhash key
-               ytdl--download-list))))
+               ytdl--download-list)))
+  (ytdl--refresh-list))
 
 
 (defun  ytdl--delete-item-at-point ()
@@ -846,8 +847,7 @@ disk.  See `ytdl--delete-item-and-file-at-point' for that feature."
             (dotimes (_ count)
               (ytdl--delete-item-from-dl-list (tabulated-list-get-id) nil t)
               (forward-line)))))
-    (ytdl--delete-item-from-dl-list (tabulated-list-get-id)))
-  (ytdl--refresh-list))
+    (ytdl--delete-item-from-dl-list (tabulated-list-get-id))))
 
 
 (defun ytdl--delete-item-and-file-at-point ()
@@ -870,8 +870,7 @@ the process."
             (dotimes (_ count)
               (ytdl--delete-item-from-dl-list (tabulated-list-get-id) t t)
               (forward-line)))))
-    (ytdl--delete-item-from-dl-list (tabulated-list-get-id) t))
-  (ytdl--refresh-list))
+    (ytdl--delete-item-from-dl-list (tabulated-list-get-id) t)))
 
 
 (defun ytdl--delete-marked-items ()
@@ -884,8 +883,7 @@ the process."
                               " item(s)?"))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key nil t))
-        (ytdl--reset-marked-item-list)
-        (ytdl--refresh-list))
+        (ytdl--reset-marked-item-list))
     (ytdl--message "No marked item.")))
 
 
@@ -900,8 +898,7 @@ the process."
                               " The associated files will be deleted as well."))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key t t))
-        (ytdl--reset-marked-item-list)
-        (ytdl--refresh-list))
+        (ytdl--reset-marked-item-list))
     (ytdl--message "No marked item.")))
 
 
@@ -997,8 +994,7 @@ If KEY is non-nil, then re-launch the download of KEY."
              (when (string= (ytdl--list-entry-status item)
                             "error")
                (ytdl--relaunch key)))
-           ytdl--download-list)
-  (ytdl--refresh-list))
+           ytdl--download-list))
 
 
 (defun ytdl--mark-at-point (&optional count)
