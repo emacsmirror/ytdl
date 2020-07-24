@@ -5,7 +5,7 @@
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ytdl
-;; Version: 1.3.2
+;; Version: 1.3.3
 ;; Package-Requires: ((emacs "26.1") (async "1.9.4") (transient "0.2.0") (dash "2.17.0"))
 ;; Keywords: comm, emulations, multimedia
 
@@ -59,7 +59,7 @@
   :group 'external)
 
 (defvar ytdl-version
-  "1.3.2"
+  "1.3.3"
   "Version of ytdl.")
 
 (defcustom ytdl-music-folder
@@ -741,6 +741,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
   "Reset `ytdl--marked-item' to empty list."
   (setq ytdl--marked-items '()))
 
+
 (define-derived-mode ytdl--dl-list-mode tabulated-list-mode "ytdl-mode"
   "Major mode for `ytdl' download list."
   (hl-line-mode)
@@ -812,7 +813,6 @@ If KEY is provided then get the object with that key in
 
 
 ;; list of ytdl download list commands
-
 (defun ytdl--delete-item-from-dl-list (key &optional delete-file? no-confirmation)
   "Delete KEY from `ytdl--download-list'.
 
@@ -979,6 +979,7 @@ To configure the media player for `ytdl', see
                (ytdl--list-entry-status item)
                ".")))))
 
+
 (defun ytdl--relaunch(&optional key)
   "Relaunch a download when error(s) occurred.
 
@@ -1004,7 +1005,6 @@ If KEY is non-nil, then re-launch the download of KEY."
                               nil
                               (nth 0 dl-type)))
       (ytdl--delete-item-from-dl-list key nil t))))
-
 
 
 (defun ytdl--relaunch-all-errors()
@@ -1133,6 +1133,7 @@ When region is active, mark all entries in region."
                (ytdl--delete-item-from-dl-list key nil t))
              ytdl--download-list)
     (ytdl--refresh-list)))
+
 
 (provide 'ytdl)
 ;;; ytdl.el ends here

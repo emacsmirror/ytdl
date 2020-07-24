@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.3.2-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.3.3-green.svg)]()
 [![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
 
 
@@ -40,7 +40,8 @@ Six interactive functions are available:
 
 Note that `ytdl-download`, `ytdl-download-open` and
 `ytdl-download-playlist` add the file in the `ytdl` download list that
-can be visualized with `ytdl-show-list`.
+can be visualized with `ytdl-show-list`. `ytdl-download-eshell` does
+not.
 
 ### URL
 
