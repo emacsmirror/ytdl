@@ -470,11 +470,19 @@ FILENAME can be a string (i.e. a single file) or a list of strings."
                                            (shell-quote-argument file))
                                          filename
                                          " ")))
-    (start-process-shell-command ytdl-media-player
-                                 nil
-                                 (concat ytdl-media-player
-                                         " "
-                                         media-player-args))))
+    (if (not ytdl-media-player)
+        (minibuffer-message (concat ytdl-message-start
+                                    "ERROR: No media player is set up. See `ytdl-media-player'."))
+      (if (not (executable-find ytdl-media-player))
+          (minibuffer-message (concat ytdl-message-start
+                                      "ERROR: Program "
+                                      ytdl-media-player
+                                      " cannot be found. Operation aborted."))
+        (start-process-shell-command ytdl-media-player
+                                     nil
+                                     (concat ytdl-media-player
+                                             " "
+                                             media-player-args))))))
 
 
 (defun ytdl--download-async (url filename extra-ytdl-args &optional finish-function dl-type)
