@@ -795,7 +795,8 @@ confirmation. Else perform the operation directly."
   (let* ((item (ytdl--get-item-object key))
          (status (ytdl--list-entry-status item)))
     (when (or no-confirmation
-              (y-or-n-p (concat "[ytdl] Are you sure to "
+              (y-or-n-p (concat ytdl-message-start
+                                "Are you sure to "
                                 (if (string= status "downloading")
                                     "interrupt this download"
                                   "delete this item")
@@ -826,7 +827,8 @@ disk.  See `ytdl--delete-item-and-file-at-point' for that feature."
       (let ((count (count-lines
                     (region-beginning)
                     (region-end))))
-        (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+        (when (y-or-n-p (concat ytdl-message-start
+                                "Are you sure to remove those "
                                 (int-to-string count)
                                 " items?"))
           (save-mark-and-excursion
@@ -848,7 +850,8 @@ the process."
       (let ((count (count-lines
                     (region-beginning)
                     (region-end))))
-        (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+        (when (y-or-n-p (concat ytdl-message-start
+                                "Are you sure to remove those "
                                 (int-to-string count)
                                 " items?"
                                 " The associated files will be deleted as well."))
@@ -865,7 +868,8 @@ the process."
   "Delete marked item(s) from download list."
   (interactive)
   (if  ytdl--marked-items
-      (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+      (when (y-or-n-p (concat ytdl-message-start
+                              "Are you sure to remove those "
                               (int-to-string (length ytdl--marked-items))
                               " item(s)?"))
         (dolist (key ytdl--marked-items)
@@ -879,7 +883,8 @@ the process."
   "Delete marked item(s) from download list and associated file(s)."
   (interactive)
   (if ytdl--marked-items
-      (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
+      (when (y-or-n-p (concat ytdl-message-start
+                              "Are you sure to remove those "
                               (int-to-string (length ytdl--marked-items))
                               " item(s)?"
                               " The associated files will be deleted as well."))
@@ -1047,7 +1052,8 @@ When region is active, mark all entries in region."
   "Mark all marked items."
   (interactive)
   (maphash (lambda (key _)
-             (setq ytdl--marked-items (append ytdl--marked-items `(,key))))
+             (setq ytdl--marked-items (append ytdl--marked-items
+                                              `(,key))))
            ytdl--download-list)
   (ytdl--refresh-list))
 
@@ -1063,7 +1069,8 @@ When region is active, mark all entries in region."
   "Mark all items matching a regular expression."
   (interactive)
   (ytdl--reset-marked-item-list)
-  (let ((regexp  (read-from-minibuffer (concat "[ytdl] Regexp to match "
+  (let ((regexp  (read-from-minibuffer (concat ytdl-message-start
+                                               "Regexp to match "
                                                "(titles and download types will be matched): "))))
     (maphash (lambda (key item)
                (with-temp-buffer
