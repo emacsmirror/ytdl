@@ -387,7 +387,7 @@ returns the value of the symbol."
           list))
 
 
-(defun ytdl-get-filename (destination-folder url)
+(defun ytdl--get-filename (destination-folder url)
   "Query a filename in mini-buffer.
 
 If `ytdl-always-query-default-filename' is t, then the
@@ -571,7 +571,7 @@ filename."
          (destination-folder (ytdl--eval-field (nth 1 dl-type)))
          (filename (if no-filename
                        (concat destination-folder "/")
-                     (ytdl-get-filename  destination-folder url)))
+                     (ytdl--get-filename  destination-folder url)))
          (extra-ytdl-args (ytdl--eval-list (ytdl--eval-field (nth 2 dl-type)))))
     (unless (ytdl--destination-folder-exists-p destination-folder)
       (error (concat "Destination folder '"
