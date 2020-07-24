@@ -318,11 +318,16 @@ of ytdl."
              'never)
       nil
     (with-temp-buffer
-      (call-process "youtube-dl" nil '(t nil) nil url "--get-filename" "--restrict-filenames")
+      (call-process "youtube-dl" nil '(t nil) nil
+                    "--get-filename"
+                    "--restrict-filenames"
+                    "--" url )
       (goto-char (point-min))
       (search-forward ".")
-      (buffer-substring-no-properties (line-beginning-position)
-                                      (1- (point))))))
+      (replace-regexp-in-string "/"
+                                "-"
+                                (buffer-substring-no-properties (line-beginning-position)
+                                                                (1- (point)))))))
 
 
 (defun ytdl--get-download-type()
@@ -481,10 +486,10 @@ DL-TYPE is the download type, see `ytdl-download-types'."
            (lambda ()
              (with-temp-buffer
                (apply #'call-process "youtube-dl" nil t nil
-                      url
                       "-o" (concat filename
                                    ".%(ext)s")
-                      extra-ytdl-args)
+                      (append extra-ytdl-args
+                              (list "--" url)))
                (goto-char (point-min))
                (if (search-forward-regexp "^ERROR:" nil t nil)
                    (progn
@@ -626,7 +631,7 @@ destination folder and extra arguments, see
           (dl-type-name (nth 3 out)))
     (with-temp-buffer
       (call-process "youtube-dl" nil '(t nil) nil
-                    "--dump-json" "--ignore-config" "--flat-playlist"
+                    "--dump-json" "--flat-playlist"
                     url)
       (goto-char (point-min))
       (cl-loop with json-object-type = 'plist
@@ -635,7 +640,7 @@ destination folder and extra arguments, see
                while video
                collect (ytdl--download-async (plist-get video :id)
                                              (concat folder-path
-                                                     (replace-regexp-in-string "/" "-" (plist-get video :title)))
+                                                     (replace-regexp-in-string "/\\|\\." "-" (plist-get video :title)))
                                              extra-ytdl-args
                                              nil
                                              dl-type-name)))))
