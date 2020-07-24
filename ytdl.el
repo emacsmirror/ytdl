@@ -5,7 +5,7 @@
 ;; Author: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; Maintainer: Arnaud Hoffmann <tuedachu@gmail.com>
 ;; URL: https://gitlab.com/tuedachu/ytdl
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((emacs "26.1") (async "1.9.4") (transient "0.2.0") (dash "2.17.0"))
 ;; Keywords: comm, emulations, multimedia
 
@@ -59,7 +59,7 @@
   :group 'external)
 
 (defvar ytdl-version
-  "1.3.1"
+  "1.3.2"
   "Version of ytdl.")
 
 (defcustom ytdl-music-folder

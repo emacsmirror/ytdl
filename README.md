@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.3.0-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.3.2-green.svg)]()
 [![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
 
 
