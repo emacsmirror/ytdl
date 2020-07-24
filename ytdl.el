@@ -324,7 +324,7 @@ of ytdl."
                     "--" url )
       (goto-char (point-min))
       (search-forward ".")
-      (replace-regexp-in-string "/"
+      (replace-regexp-in-string "/\\|_"
                                 "-"
                                 (buffer-substring-no-properties (line-beginning-position)
                                                                 (1- (point)))))))
