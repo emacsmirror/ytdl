@@ -580,6 +580,7 @@ filename."
     (list url filename extra-ytdl-args dl-type-name)))
 
 
+;;;###autoload
 (defun ytdl-download-eshell ()
   "Download file from a web server using ytdl in eshell.
 
@@ -598,6 +599,7 @@ destination folder and extra arguments, see
                            extra-ytdl-args)))
 
 
+;;;###autoload
 (defun ytdl-download ()
   "Download asynchronously file from a web server."
   (interactive)
@@ -613,6 +615,7 @@ destination folder and extra arguments, see
                           dl-type-name)))
 
 
+;;;###autoload
 (defun ytdl-download-playlist ()
   "Download asynchronously playlist from a web server."
   (interactive)
@@ -638,7 +641,7 @@ destination folder and extra arguments, see
                                              dl-type-name)))))
 
 
-
+;;;###autoload
 (defun ytdl-download-open ()
   "Download file from a web server using and open it.
 
@@ -667,6 +670,7 @@ The file is opened with `ytdl-media-player'."
                           dl-type)))
 
 
+;;;###autoload
 (defun ytdl-open-last-downloaded-file ()
   "Open the last downloaded file in `ytdl-media-player'.
 
@@ -744,6 +748,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
           (ytdl--list-entry-type  item)))
 
 
+;;;###autoload
 (defun ytdl-show-list ()
   "Open a new buffer and display `ytdl' download list."
   (interactive)
