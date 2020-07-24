@@ -83,7 +83,12 @@ Several actions can be carried out within the download list buffer:
 
 ### Demo
 
+#### Download a video
 ![ytdl usage](doc/usage.gif)
+
+#### Download a playlist
+
+![ytdl usage](doc/playlist.gif)
 
 
 ## Inspiration from Skeeto's `youtube-dl.el`
