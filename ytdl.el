@@ -851,7 +851,7 @@ the process."
         (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
                                 (int-to-string count)
                                 " items?"
-                                "The associated files will be deleted as well."))
+                                " The associated files will be deleted as well."))
           (save-mark-and-excursion
             (goto-char (region-beginning))
             (dotimes (_ count)
@@ -882,7 +882,7 @@ the process."
       (when (y-or-n-p (concat "[ytdl] Are you sure to remove those "
                               (int-to-string (length ytdl--marked-items))
                               " item(s)?"
-                              "The associated files will be deleted as well."))
+                              " The associated files will be deleted as well."))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key t t))
         (ytdl--reset-marked-item-list)
