@@ -626,7 +626,8 @@ destination folder and extra arguments, see
                     "--dump-json" "--ignore-config" "--flat-playlist"
                     url)
       (goto-char (point-min))
-      (cl-loop for index upfrom 1
+      (cl-loop with json-object-type = 'plist
+               for index upfrom 1
                for video = (ignore-errors (json-read))
                while video
                collect (ytdl--download-async (plist-get video :id)
