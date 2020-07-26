@@ -586,10 +586,9 @@ UUID is the key of the list item in `ytdl--download-list'."
 
 NO-FILENAME is non-nil, then don't query the user for the
 filename."
-  (let* ((url-at-point (thing-at-point 'url t))
-         (url (or url-at-point
-                  (read-from-minibuffer (concat ytdl-message-start
-                                                "URL: ")
+  (let* ((url (read-from-minibuffer (concat ytdl-message-start
+                                            "URL: ")
+                                    (or (thing-at-point 'url t)
                                         (current-kill 0))))
          (dl-type (ytdl--get-download-type))
          (dl-type-name (nth 0 dl-type))
