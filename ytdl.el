@@ -326,16 +326,21 @@ of ytdl."
              'never)
       nil
     (with-temp-buffer
-      (call-process "youtube-dl" nil '(t nil) nil
+      (call-process "youtube-dl" nil t nil
                     "--get-filename"
                     "--restrict-filenames"
                     "--" url )
       (goto-char (point-min))
-      (search-forward ".")
-      (replace-regexp-in-string "/\\|_"
-                                "-"
-                                (buffer-substring-no-properties (line-beginning-position)
-                                                                (1- (point)))))))
+      (if (search-forward-regexp "^ERROR" nil t)
+          (progn
+            (beginning-of-line)
+            (error (buffer-substring-no-properties (line-beginning-position)
+                                                   (line-end-position))))
+        (search-forward ".")
+        (replace-regexp-in-string "/\\|_"
+                                  "-"
+                                  (buffer-substring-no-properties (line-beginning-position)
+                                                                  (1- (point))))))))
 
 
 (defun ytdl--get-download-type()
@@ -534,8 +539,7 @@ DL-TYPE is the download type, see `ytdl-download-types'."
                                                           ytdl--download-list))
                          response)
                    (ytdl--eval-mode-line-string -1)
-                   (message (concat ytdl-message-start
-                                    response)))
+                   (ytdl--message response))
                (ytdl--async-download-finished response uuid)
                (when finish-function
                  (funcall finish-function response)))
