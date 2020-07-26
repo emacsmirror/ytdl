@@ -1002,12 +1002,12 @@ If KEY is non-nil, then re-launch the download of KEY."
                                  `(,(nth 0 x) ,(nth 2 x) ,(nth 3 x))))
                              ytdl-download-types)))
         (ytdl--download-async (ytdl--list-entry-url item)
-                              (concat (nth 1 dl-type)
+                              (concat (ytdl--eval-field (nth 1 dl-type))
                                       "/"
                                       (ytdl--list-entry-title item))
-                              (nth 2 dl-type)
+                              (ytdl--eval-field (nth 2 dl-type))
                               nil
-                              (nth 0 dl-type)))
+                              (ytdl--eval-field (nth 0 dl-type))))
       (ytdl--delete-item-from-dl-list key nil t))))
 
 
