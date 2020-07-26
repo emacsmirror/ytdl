@@ -456,7 +456,7 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
       t
     (if (y-or-n-p (concat "Directory '"
                           destination-folder
-                          "' does not exist. Do you want to create it?"))
+                          "' does not exist. Create it?"))
         (progn
           (make-directory destination-folder)
           t)
@@ -830,10 +830,9 @@ confirmation. Else perform the operation directly."
          (status (ytdl--list-entry-status item)))
     (when (or no-confirmation
               (y-or-n-p (concat ytdl-message-start
-                                "Are you sure to "
                                 (if (string= status "downloading")
-                                    "interrupt this download"
-                                  "delete this item")
+                                    "Interrupt this download"
+                                  "Delete this item")
                                 "?"
                                 (when (and delete-file?
                                            (string= status "downloaded"))
@@ -863,7 +862,7 @@ disk.  See `ytdl--delete-item-and-file-at-point' for that feature."
                     (region-beginning)
                     (region-end))))
         (when (y-or-n-p (concat ytdl-message-start
-                                "Are you sure to remove those "
+                                "Remove those "
                                 (int-to-string count)
                                 " items?"))
           (save-mark-and-excursion
@@ -885,7 +884,7 @@ the process."
                     (region-beginning)
                     (region-end))))
         (when (y-or-n-p (concat ytdl-message-start
-                                "Are you sure to remove those "
+                                "Remove those "
                                 (int-to-string count)
                                 " items?"
                                 " The associated files will be deleted as well."))
@@ -902,7 +901,7 @@ the process."
   (interactive)
   (if  ytdl--marked-items
       (when (y-or-n-p (concat ytdl-message-start
-                              "Are you sure to remove those "
+                              "Remove those "
                               (int-to-string (length ytdl--marked-items))
                               " item(s)?"))
         (dolist (key ytdl--marked-items)
@@ -916,7 +915,7 @@ the process."
   (interactive)
   (if ytdl--marked-items
       (when (y-or-n-p (concat ytdl-message-start
-                              "Are you sure to remove those "
+                              "Remove those "
                               (int-to-string (length ytdl--marked-items))
                               " item(s)?"
                               " The associated files will be deleted as well."))
@@ -1118,7 +1117,7 @@ When region is active, mark all entries in region."
   "Delete downloaded items from list."
   (interactive)
   (when (y-or-n-p (concat ytdl-message-start
-                          "Do you want to clear the list of downloaded items?"))
+                          "Clear the list of downloaded items?"))
     (maphash (lambda (key item)
                (when (string= (ytdl--list-entry-status item)
                               "downloaded")
@@ -1131,8 +1130,7 @@ When region is active, mark all entries in region."
   "Clear ytdl download list."
   (interactive)
   (when (y-or-n-p (concat ytdl-message-start
-                          "Do you want to clear the entire list?"
-                          "Processes currently running will be interreupted."))
+                          "Stop current downloads and clear the whole list?"))
     (maphash (lambda (key _)
                (ytdl--delete-item-from-dl-list key nil t))
              ytdl--download-list)
