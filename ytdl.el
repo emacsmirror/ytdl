@@ -659,20 +659,25 @@ destination folder and extra arguments, see
             (extra-ytdl-args (nth 2 out))
             (dl-type-name (nth 3 out)))
       (with-temp-buffer
-        (call-process "youtube-dl" nil '(t nil) nil
+        (call-process "youtube-dl" nil t nil
                       "--dump-json" "--flat-playlist"
                       url)
         (goto-char (point-min))
-        (cl-loop with json-object-type = 'plist
-                 for index upfrom 1
-                 for video = (ignore-errors (json-read))
-                 while video
-                 collect (ytdl--download-async (plist-get video :id)
-                                               (concat folder-path
-                                                       (replace-regexp-in-string "/\\|\\." "-" (plist-get video :title)))
-                                               extra-ytdl-args
-                                               nil
-                                               dl-type-name))))))
+        (if (search-forward-regexp "^ERROR" nil t)
+            (progn
+              (beginning-of-line)
+              (error (buffer-substring-no-properties (line-beginning-position)
+                                                     (line-end-position))))
+          (cl-loop with json-object-type = 'plist
+                   for index upfrom 1
+                   for video = (ignore-errors (json-read))
+                   while video
+                   collect (ytdl--download-async (plist-get video :id)
+                                                 (concat folder-path
+                                                         (replace-regexp-in-string "/\\|\\." "-" (plist-get video :title)))
+                                                 extra-ytdl-args
+                                                 nil
+                                                 dl-type-name)))))))
 
 
 ;;;###autoload
