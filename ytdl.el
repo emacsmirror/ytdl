@@ -186,6 +186,13 @@ See `ytdl--eval-mode-line-string'.")
 Keys are UUID.
 `ytdl--list-entry'.")
 
+(defcustom ytdl-title-column-width
+  35
+  "Width of the item title column in the download list."
+  :group 'ytdl
+  :type 'integer)
+
+
 (defvar ytdl--dl-list-mode-map
   (let ((map (copy-keymap special-mode-map)))
     (prog1 map
@@ -756,7 +763,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
   (use-local-map ytdl--dl-list-mode-map)
   (setq tabulated-list-padding 2)
   (setq tabulated-list-format
-        `[("Title" 35 t)
+        `[("Title"  ,ytdl-title-column-width t)
           ("Status" 15 nil)
           ("Size" 10 nil)
           ("Download type" 30 nil)])
