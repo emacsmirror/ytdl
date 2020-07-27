@@ -172,12 +172,11 @@ This behavior can be changed by changing `ytdl-always-query-default-filename` to
   users to use `helm`). To always use `completing-read`, set
   `ytdl-max-mini-buffer-download-type-entries` to 0.
 
-- Change `ytdl` download list buffer name with `ytdl-dl-buffer-name`.
+- Change `ytdl` download list buffer name with
+  `ytdl-dl-buffer-name`. Default value is `*ytdl-list*`.
 
-- Customize the columns of the download list by changing
-  `ytdl-dl-buffer-string` and `ytdl-dl-buffer-fields-to-print`. Note
-  that `ytdl-dl-buffer-fields-to-print` is a list whose members are
-  slots of `ytdl--list-entry`.
+- Change the item title column width with
+  `ytdl-title-column-width`. Default value is 35.
 
 
 
