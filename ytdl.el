@@ -104,12 +104,6 @@ Used by `ytdl-download-open'."
   :group 'ytdl
   :type '(string))
 
-(defvar ytdl-message-start
-  "[ytdl] "
-  "String that starts all mini-buffer messages from `ytdl'."
-  :group 'ytdl
-  :type '(string))
-
 (defcustom ytdl-mode-line
   t
   "Show `ytdl' information in Emacs mode line."
@@ -241,11 +235,13 @@ Keys are UUID.
   "List of marked items.")
 
 ;; Functions
-(defun ytdl--message (msg)
-  "Display MSG starting with `ytdl-message-start'."
-  (message (concat ytdl-message-start
-                   msg)))
+(defun ytdl--concat (&rest sequences)
+  "Like `concat' but prefix the result with this package name."
+  (apply 'concat "[ytdl] " sequences))
 
+(defun ytdl--message (&rest sequences)
+  "Like `message' but prefixed with this package name."
+  (message (apply 'ytdl--concat sequences)))
 
 (defun ytdl--youtube-dl-missing-p ()
   "Test whether youtube-dl is installed.
@@ -425,8 +421,7 @@ Returns a valid string:
 - no '/' in the filename
 - The filename does not exist yet in DESTINATION-FOLDER."
 
-  (let* ((prompt (concat ytdl-message-start
-                         "Filename [no extension]: "))
+  (let* ((prompt (ytdl--concat "Filename [no extension]: "))
          (default-filename (ytdl--get-default-filename url))
          (filename (or (when (equal ytdl-always-query-default-filename
                                     'yes)
@@ -443,10 +438,10 @@ Returns a valid string:
                                             0
                                             (cl-search "."
                                                        filename-completed)))))))
-      (minibuffer-message (concat ytdl-message-start
-                                  (if (cl-search "/" filename)
-                                      "Filename cannot contain '/'!"
-                                    "Filename already exist in the destination folder (eventually with a different extension)!")))
+      (minibuffer-message (ytdl--concat
+                           (if (cl-search "/" filename)
+                               "Filename cannot contain '/'!"
+                             "Filename already exist in the destination folder (eventually with a different extension)!")))
       (setq filename (read-from-minibuffer prompt
                                            default-filename)))
     (setq filename (concat destination-folder
@@ -469,8 +464,7 @@ creates DESTINATION-FOLDER and returns t. Else, returns nil."
         (progn
           (make-directory destination-folder)
           t)
-      (minibuffer-message (concat ytdl-message-start
-                                  "Operation aborted...")))))
+      (minibuffer-message (ytdl--concat "Operation aborted...")))))
 
 
 (defun ytdl--open-file-in-media-player (filename)
@@ -582,8 +576,7 @@ UUID is the key of the list item in `ytdl--download-list'."
                                    (file-attributes
                                     filename))))
   (ytdl--eval-mode-line-string -1)
-  (ytdl--message (concat "Video downloaded: "
-                         filename)))
+  (ytdl--message "Video downloaded: " filename))
 
 
 (defun ytdl--get-args (&optional no-filename)
@@ -591,8 +584,7 @@ UUID is the key of the list item in `ytdl--download-list'."
 
 NO-FILENAME is non-nil, then don't query the user for the
 filename."
-  (let* ((url (read-from-minibuffer (concat ytdl-message-start
-                                            "URL: ")
+  (let* ((url (read-from-minibuffer (ytdl--concat "URL: ")
                                     (or (thing-at-point 'url t)
                                         (current-kill 0))))
          (dl-type (ytdl--get-download-type))
@@ -834,14 +826,14 @@ confirmation.  Else perform the operation directly."
   (let* ((item (ytdl--get-item-object key))
          (status (ytdl--list-entry-status item)))
     (when (or no-confirmation
-              (y-or-n-p (concat ytdl-message-start
-                                (if (string= status "downloading")
-                                    "Interrupt this download"
-                                  "Delete this item")
-                                "?"
-                                (when (and delete-file?
-                                           (string= status "downloaded"))
-                                  " The associated file will be deleted."))))
+              (y-or-n-p (ytdl--concat
+                         (if (string= status "downloading")
+                             "Interrupt this download"
+                           "Delete this item")
+                         "?"
+                         (when (and delete-file?
+                                    (string= status "downloaded"))
+                           " The associated file will be deleted."))))
       (when (string= status "downloading")
         (interrupt-process (ytdl--list-entry-process-id item))
         (ytdl--eval-mode-line-string -1))
@@ -866,10 +858,10 @@ disk.  See `ytdl--delete-item-and-file-at-point' for that feature."
       (let ((count (count-lines
                     (region-beginning)
                     (region-end))))
-        (when (y-or-n-p (concat ytdl-message-start
-                                "Remove those "
-                                (int-to-string count)
-                                " items?"))
+        (when (y-or-n-p (ytdl--concat
+                         "Remove those "
+                         (int-to-string count)
+                         " items?"))
           (save-mark-and-excursion
             (goto-char (region-beginning))
             (dotimes (_ count)
@@ -888,11 +880,11 @@ the process."
       (let ((count (count-lines
                     (region-beginning)
                     (region-end))))
-        (when (y-or-n-p (concat ytdl-message-start
-                                "Remove those "
-                                (int-to-string count)
-                                " items?"
-                                " The associated files will be deleted as well."))
+        (when (y-or-n-p (ytdl--concat
+                         "Remove those "
+                         (int-to-string count)
+                         " items?"
+                         " The associated files will be deleted as well."))
           (save-mark-and-excursion
             (goto-char (region-beginning))
             (dotimes (_ count)
@@ -905,10 +897,10 @@ the process."
   "Delete marked item(s) from download list."
   (interactive)
   (if  ytdl--marked-items
-      (when (y-or-n-p (concat ytdl-message-start
-                              "Remove those "
-                              (int-to-string (length ytdl--marked-items))
-                              " item(s)?"))
+      (when (y-or-n-p (ytdl--concat
+                       "Remove those "
+                       (int-to-string (length ytdl--marked-items))
+                       " item(s)?"))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key nil t))
         (ytdl--reset-marked-item-list))
@@ -919,11 +911,11 @@ the process."
   "Delete marked item(s) from download list and associated file(s)."
   (interactive)
   (if ytdl--marked-items
-      (when (y-or-n-p (concat ytdl-message-start
-                              "Remove those "
-                              (int-to-string (length ytdl--marked-items))
-                              " item(s)?"
-                              " The associated files will be deleted as well."))
+      (when (y-or-n-p (ytdl--concat
+                       "Remove those "
+                       (int-to-string (length ytdl--marked-items))
+                       " item(s)?"
+                       " The associated files will be deleted as well."))
         (dolist (key ytdl--marked-items)
           (ytdl--delete-item-from-dl-list key t t))
         (ytdl--reset-marked-item-list))
@@ -971,7 +963,7 @@ To configure the media player for `ytdl', see
                       "downloaded"))
         (ytdl--message "File is not downloaded yet...")
       (let ((path (ytdl--list-entry-path item)))
-        (ytdl--message (concat "File path is: " path ". Added to kill-ring."))
+        (ytdl--message "File path is: " path ". Added to kill-ring.")
         (kill-new path)))))
 
 
@@ -998,8 +990,7 @@ If KEY is non-nil, then re-launch the download of KEY."
          (item (ytdl--get-item-object key))
          (status (ytdl--list-entry-status item)))
     (if (not (string= status "error"))
-        (ytdl--message (concat "Item at point is "
-                               status))
+        (ytdl--message "Item at point is " status)
       (let ((dl-type (mapcan (lambda (x)
                                (when (string= (nth 0 x)
                                               (ytdl--list-entry-type item))
@@ -1103,9 +1094,9 @@ When region is active, mark all entries in region."
   "Mark all items matching a regular expression."
   (interactive)
   (ytdl--reset-marked-item-list)
-  (let ((regexp  (read-from-minibuffer (concat ytdl-message-start
-                                               "Regexp to match "
-                                               "(titles and download types will be matched): "))))
+  (let ((regexp  (read-from-minibuffer (ytdl--concat
+                                        "Regexp to match "
+                                        "(titles and download types will be matched): "))))
     (maphash (lambda (key item)
                (with-temp-buffer
                  (insert (concat (ytdl--list-entry-title item)
@@ -1121,8 +1112,7 @@ When region is active, mark all entries in region."
 (defun ytdl--clear-downloaded ()
   "Delete downloaded items from list."
   (interactive)
-  (when (y-or-n-p (concat ytdl-message-start
-                          "Clear the list of downloaded items?"))
+  (when (y-or-n-p (ytdl--concat "Clear the list of downloaded items?"))
     (maphash (lambda (key item)
                (when (string= (ytdl--list-entry-status item)
                               "downloaded")
@@ -1134,8 +1124,7 @@ When region is active, mark all entries in region."
 (defun ytdl--clear-list ()
   "Clear ytdl download list."
   (interactive)
-  (when (y-or-n-p (concat ytdl-message-start
-                          "Stop current downloads and clear the whole list?"))
+  (when (y-or-n-p (ytdl--concat "Stop current downloads and clear the whole list?"))
     (maphash (lambda (key _)
                (ytdl--delete-item-from-dl-list key nil t))
              ytdl--download-list)
