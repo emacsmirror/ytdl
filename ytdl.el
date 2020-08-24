@@ -86,11 +86,11 @@
 
 (defcustom ytdl-always-query-default-filename
   'never
-  "Whether to always query default-filename to ytdl.
+  "Whether to always query default filename.
 
- Values can be:
-- 'never: never query default filename
-- 'yes-confirm: always query but ask confirmation to user
+Values can be:
+- 'never: never query default filename,
+- 'yes-confirm: always query but ask confirmation to user,
 - 'yes: always query and use the default filename without confirmation."
   :group 'ytdl
   :type 'boolean)
@@ -100,21 +100,19 @@
   "mpv"
   "Media player to use to open videos.
 
-Default is 'mpv'.
 Used by `ytdl-download-open'."
   :group 'ytdl
   :type '(string))
 
 (defcustom ytdl-message-start
   "[ytdl] "
-  "String that starts all mini-buffer messages from `ytdl'.
-Default value is '[ytdl] '."
+  "String that starts all mini-buffer messages from `ytdl'."
   :group 'ytdl
   :type '(string))
 
 (defcustom ytdl-mode-line
   t
-  "Show `ytdl' information in EMACS mode line."
+  "Show `ytdl' information in Emacs mode line."
   :group 'ytdl
   :type 'boolean)
 
@@ -244,7 +242,7 @@ Keys are UUID.
 
 ;; Functions
 (defun ytdl--message (msg)
-  "Diplay MSG starting with `ytdl-message-start'."
+  "Display MSG starting with `ytdl-message-start'."
   (message (concat ytdl-message-start
                    msg)))
 
@@ -256,7 +254,7 @@ Returns nil if youtube-dl is missing. Else, returns t."
   (not (executable-find ytdl-command)))
 
 
-(defun ytdl--eval-mode-line-string(increment)
+(defun ytdl--eval-mode-line-string (increment)
   "Evaluate `ytdl' global mode string.
 
 - Increment (or decrement) `ytdl--download-in-progress' based on
@@ -290,13 +288,13 @@ INCREMENT value.
   "Add new field in the list of download types `ytdl-download-types'.
 
 Add element '(FIELD-NAME KEYBOARD-SHORTCUT PATH-TO-FOLDER
-                           EXTRA-ARGS) to list ofdownload types.
+                           EXTRA-ARGS) to list of download types.
 
-NOTE that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
+Note that the PATH-TO-FOLDER and EXTRA-ARGS can be symbols."
   (add-to-list 'ytdl-download-types `(,field-name ,keyboard-shortcut ,path-to-folder ,extra-args)))
 
 
-(defun ytdl--run-ytdl-eshell(url destination-folder filename &optional extra-ytdl-args)
+(defun ytdl--run-ytdl-eshell (url destination-folder filename &optional extra-ytdl-args)
   "Run ytdl in a new eshell buffer.
 
 URL is the url of the video to download.  DESTINATION-FOLDER is
@@ -329,7 +327,7 @@ This opration is asynchronous."
 
 
 (defun ytdl--get-default-filename (url)
-  "Get default filename from webserver.
+  "Get default filename from web server.
 
 Query the default-filename of URL using '--get-filename' argument
 of ytdl."
@@ -354,7 +352,7 @@ of ytdl."
                                                                   (1- (point))))))))
 
 
-(defun ytdl--get-download-type()
+(defun ytdl--get-download-type ()
   "Query download type in mini-buffer.
 
 User can choose candidates from the elements of
@@ -372,7 +370,7 @@ Returns (download-type destination-folder extra-args)."
                                                       ""))
                                                   ytdl-download-types))
                        (read-char-choice (concat (propertize "Destination folder:" 'face 'default)
-                                                 (mapconcat (lambda(x)
+                                                 (mapconcat (lambda (x)
                                                               (when (ytdl--eval-field (nth 2 x))
                                                                 (let ((destination (nth 0 x))
                                                                       (letter-shortcut (ytdl--eval-field (nth 1 x))))
@@ -383,12 +381,12 @@ Returns (download-type destination-folder extra-args)."
                                                                           "]"))))
                                                             ytdl-download-types
                                                             ""))
-                                         (mapcar (lambda(x)
+                                         (mapcar (lambda (x)
                                                    (when (ytdl--eval-field (nth 2 x))
-                                                     (aref (ytdl--eval-field(nth 1 x)) 0)))
+                                                     (aref (ytdl--eval-field (nth 1 x)) 0)))
                                                  ytdl-download-types)))))
 
-    (mapcan (lambda(x)
+    (mapcan (lambda (x)
               (when (if use-completing-read?
                         (string= (nth 0 x) user-input)
                       (= (aref (ytdl--eval-field (nth 1 x)) 0) user-input))
@@ -411,7 +409,7 @@ value of the symbol."
 
 Test whether each element is a symbol.  If it is a symbol,
 returns the value of the symbol."
-  (mapcar (lambda(arg)
+  (mapcar (lambda (arg)
             (ytdl--eval-field arg))
           list))
 
@@ -695,7 +693,7 @@ destination folder and extra arguments, see
   "Download file from a web server using and open it.
 
 If URL is given as argument, then download file from URL.  Else
-download the file from the url stored in `current-ring'.
+download the file from the URL stored in `current-ring'.
 
 The file is opened with `ytdl-media-player'."
   (interactive)
@@ -751,7 +749,7 @@ The last downloaded file is stored in
 (defun ytdl--uuid (url)
   "Generate a UUID using URL.
 
-UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
+UUID consist of URL and a timestamp '%Y-%m-%d-%T'."
   (concat url
           (url-encode-url (format-time-string "%Y-%m-%d-%T"))))
 
@@ -774,7 +772,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
   (add-hook 'tabulated-list-revert-hook #'ytdl--refresh-list nil t))
 
 
-(defun ytdl--format-item-list()
+(defun ytdl--format-item-list ()
   "Format the download list for `tabulated-list-mode'."
   (let ((item-list '()))
     (maphash (lambda (key item)
@@ -820,7 +818,7 @@ UUID consist of URL and a time stamp '%Y-%m-%d-%T'."
           (forward-line))))))
 
 
-(defun ytdl--get-item-object(&optional key)
+(defun ytdl--get-item-object (&optional key)
   "Get object of item at point.
 
 If KEY is provided then get the object with that key in
@@ -836,10 +834,10 @@ If KEY is provided then get the object with that key in
   "Delete KEY from `ytdl--download-list'.
 
 If DELETE-FILE? is non-nil then delete associated file on the
-disk. Else delete item from the download list only.
+disk.  Else delete item from the download list only.
 
 If NO-CONFIRMATION is nil, then ask user for
-confirmation. Else perform the operation directly."
+confirmation.  Else perform the operation directly."
 
   (let* ((item (ytdl--get-item-object key))
          (status (ytdl--list-entry-status item)))
@@ -940,7 +938,7 @@ the process."
     (ytdl--message "No marked item.")))
 
 
-(defun ytdl--open-item-at-point()
+(defun ytdl--open-item-at-point ()
   "Open item at point in media player.
 
 To configure the media player for `ytdl', see
@@ -954,7 +952,7 @@ To configure the media player for `ytdl', see
       (ytdl--open-file-in-media-player (ytdl--list-entry-path item)))))
 
 
-(defun ytdl--open-marked-items()
+(defun ytdl--open-marked-items ()
   "Open marked items.
 
 To configure the media player for `ytdl', see
@@ -985,7 +983,7 @@ To configure the media player for `ytdl', see
         (kill-new path)))))
 
 
-(defun ytdl--show-error()
+(defun ytdl--show-error ()
   "Show eventual errors for item at point."
   (interactive)
   (let ((item (ytdl--get-item-object)))
@@ -1010,7 +1008,7 @@ If KEY is non-nil, then re-launch the download of KEY."
     (if (not (string= status "error"))
         (ytdl--message (concat "Item at point is "
                                status))
-      (let ((dl-type (mapcan (lambda(x)
+      (let ((dl-type (mapcan (lambda (x)
                                (when (string= (nth 0 x)
                                               (ytdl--list-entry-type item))
                                  `(,(nth 0 x) ,(nth 2 x) ,(nth 3 x))))
@@ -1025,7 +1023,7 @@ If KEY is non-nil, then re-launch the download of KEY."
       (ytdl--delete-item-from-dl-list key nil t))))
 
 
-(defun ytdl--relaunch-all-errors()
+(defun ytdl--relaunch-all-errors ()
   "Relaunch all downloads with error."
   (interactive)
   (maphash (lambda (key item)
