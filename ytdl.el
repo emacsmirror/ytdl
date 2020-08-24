@@ -62,6 +62,10 @@
   "1.3.4"
   "Version of ytdl.")
 
+(defcustom ytdl-command "youtube-dl"
+  "The youtube-dl program."
+  :type 'string)
+
 (defcustom ytdl-music-folder
   nil
   "Folder where music will be downloaded."
@@ -249,7 +253,7 @@ Keys are UUID.
   "Test whether youtube-dl is installed.
 
 Returns nil if youtube-dl is missing. Else, returns t."
-  (not (executable-find "youtube-dl")))
+  (not (executable-find ytdl-command)))
 
 
 (defun ytdl--eval-mode-line-string(increment)
@@ -311,7 +315,7 @@ This opration is asynchronous."
     (eshell-interrupt-process)
     (insert (concat "cd "
                     (shell-quote-argument destination-folder)
-                    " && youtube-dl "
+                    " && " ytdl-command " "
                     (shell-quote-argument url)
                     " -o "
                     (shell-quote-argument filename)
@@ -333,7 +337,7 @@ of ytdl."
              'never)
       nil
     (with-temp-buffer
-      (call-process "youtube-dl" nil t nil
+      (call-process ytdl-command nil t nil
                     "--get-filename"
                     "--restrict-filenames"
                     "--" url )
@@ -665,7 +669,7 @@ destination folder and extra arguments, see
             (extra-ytdl-args (nth 2 out))
             (dl-type-name (nth 3 out)))
       (with-temp-buffer
-        (call-process "youtube-dl" nil t nil
+        (call-process ytdl-command nil t nil
                       "--dump-json" "--flat-playlist"
                       url)
         (goto-char (point-min))
