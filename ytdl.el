@@ -104,7 +104,7 @@ Used by `ytdl-download-open'."
   :group 'ytdl
   :type '(string))
 
-(defcustom ytdl-message-start
+(defvar ytdl-message-start
   "[ytdl] "
   "String that starts all mini-buffer messages from `ytdl'."
   :group 'ytdl
@@ -484,19 +484,15 @@ FILENAME can be a string (i.e. a single file) or a list of strings."
                                            (shell-quote-argument file))
                                          filename
                                          " ")))
-    (if (not ytdl-media-player)
-        (minibuffer-message (concat ytdl-message-start
-                                    "ERROR: No media player is set up. See `ytdl-media-player'."))
-      (if (not (executable-find ytdl-media-player))
-          (minibuffer-message (concat ytdl-message-start
-                                      "ERROR: Program "
-                                      ytdl-media-player
-                                      " cannot be found. Operation aborted."))
-        (start-process-shell-command ytdl-media-player
-                                     nil
-                                     (concat ytdl-media-player
-                                             " "
-                                             media-player-args))))))
+    (unless ytdl-media-player
+      (error "No media player is set up. See `ytdl-media-player'."))
+    (unless (executable-find ytdl-media-player)
+      (error "Program %S cannot be found." ytdl-media-player))
+    (start-process-shell-command ytdl-media-player
+                                 nil
+                                 (concat ytdl-media-player
+                                         " "
+                                         media-player-args))))
 
 
 (defun ytdl--download-async (url filename extra-ytdl-args &optional finish-function dl-type)
@@ -622,70 +618,67 @@ folder location.  Query the download type and use the associated
 destination folder and extra arguments, see
 `ytdl-add-field-in-download-type-list'."
   (interactive)
-  (if (ytdl--youtube-dl-missing-p)
-      (minibuffer-message (concat ytdl-message-start
-                                  "ERROR: youtube-dl is not installed."))
-    (let* ((out (ytdl--get-args))
-           (url (nth 0 out))
-           (filename (nth 1 out))
-           (extra-ytdl-args (nth 2 out)))
-      (ytdl--run-ytdl-eshell url
-                             (file-name-directory filename)
-                             (file-name-nondirectory filename)
-                             extra-ytdl-args))))
+  (when (ytdl--youtube-dl-missing-p)
+    (error "youtube-dl is not installed."))
+  (let* ((out (ytdl--get-args))
+         (url (nth 0 out))
+         (filename (nth 1 out))
+         (extra-ytdl-args (nth 2 out)))
+    (ytdl--run-ytdl-eshell url
+                           (file-name-directory filename)
+                           (file-name-nondirectory filename)
+                           extra-ytdl-args)))
 
 
 ;;;###autoload
 (defun ytdl-download ()
   "Download asynchronously file from a web server."
   (interactive)
-  (if (ytdl--youtube-dl-missing-p)
-      (minibuffer-message (concat ytdl-message-start
-                                  "ERROR: youtube-dl is not installed."))
-    (let* ((out (ytdl--get-args))
-           (url (nth 0 out))
-           (filename (nth 1 out))
-           (extra-ytdl-args (nth 2 out))
-           (dl-type-name (nth 3 out)))
-      (ytdl--download-async url
-                            filename
-                            extra-ytdl-args
-                            nil
-                            dl-type-name))))
+  (when (ytdl--youtube-dl-missing-p)
+    (error "youtube-dl is not installed."))
+  (let* ((out (ytdl--get-args))
+         (url (nth 0 out))
+         (filename (nth 1 out))
+         (extra-ytdl-args (nth 2 out))
+         (dl-type-name (nth 3 out)))
+    (ytdl--download-async url
+                          filename
+                          extra-ytdl-args
+                          nil
+                          dl-type-name)))
 
 
 ;;;###autoload
 (defun ytdl-download-playlist ()
   "Download asynchronously playlist from a web server."
   (interactive)
-  (if (ytdl--youtube-dl-missing-p)
-      (minibuffer-message (concat ytdl-message-start
-                                  "ERROR: youtube-dl is not installed."))
-    (let* ( (out (ytdl--get-args t))
-            (url (nth 0 out))
-            (folder-path (nth 1 out))
-            (extra-ytdl-args (nth 2 out))
-            (dl-type-name (nth 3 out)))
-      (with-temp-buffer
-        (call-process ytdl-command nil t nil
-                      "--dump-json" "--flat-playlist"
-                      url)
-        (goto-char (point-min))
-        (if (search-forward-regexp "^ERROR" nil t)
-            (progn
-              (beginning-of-line)
-              (error (buffer-substring-no-properties (line-beginning-position)
-                                                     (line-end-position))))
-          (cl-loop with json-object-type = 'plist
-                   for index upfrom 1
-                   for video = (ignore-errors (json-read))
-                   while video
-                   collect (ytdl--download-async (plist-get video :id)
-                                                 (concat folder-path
-                                                         (replace-regexp-in-string "/\\|\\." "-" (plist-get video :title)))
-                                                 extra-ytdl-args
-                                                 nil
-                                                 dl-type-name)))))))
+  (when (ytdl--youtube-dl-missing-p)
+    (error "youtube-dl is not installed."))
+  (let* ((out (ytdl--get-args t))
+         (url (nth 0 out))
+         (folder-path (nth 1 out))
+         (extra-ytdl-args (nth 2 out))
+         (dl-type-name (nth 3 out)))
+    (with-temp-buffer
+      (call-process ytdl-command nil t nil
+                    "--dump-json" "--flat-playlist"
+                    url)
+      (goto-char (point-min))
+      (if (search-forward-regexp "^ERROR" nil t)
+          (progn
+            (beginning-of-line)
+            (error (buffer-substring-no-properties (line-beginning-position)
+                                                   (line-end-position))))
+        (cl-loop with json-object-type = 'plist
+                 for index upfrom 1
+                 for video = (ignore-errors (json-read))
+                 while video
+                 collect (ytdl--download-async (plist-get video :id)
+                                               (concat folder-path
+                                                       (replace-regexp-in-string "/\\|\\." "-" (plist-get video :title)))
+                                               extra-ytdl-args
+                                               nil
+                                               dl-type-name))))))
 
 
 ;;;###autoload
@@ -697,19 +690,18 @@ download the file from the URL stored in `current-ring'.
 
 The file is opened with `ytdl-media-player'."
   (interactive)
-  (if (ytdl--youtube-dl-missing-p)
-      (minibuffer-message (concat ytdl-message-start
-                                  "ERROR: youtube-dl is not installed."))
-    (let* ((out (ytdl--get-args))
-           (url (nth 0 out))
-           (filename (nth 1 out))
-           (extra-ytdl-args (nth 2 out))
-           (dl-type (nth 3 out)))
-      (ytdl--download-async url
-                            filename
-                            extra-ytdl-args
-                            'ytdl--open-file-in-media-player
-                            dl-type))))
+  (when (ytdl--youtube-dl-missing-p)
+    (error "youtube-dl is not installed."))
+  (let* ((out (ytdl--get-args))
+         (url (nth 0 out))
+         (filename (nth 1 out))
+         (extra-ytdl-args (nth 2 out))
+         (dl-type (nth 3 out)))
+    (ytdl--download-async url
+                          filename
+                          extra-ytdl-args
+                          'ytdl--open-file-in-media-player
+                          dl-type)))
 
 
 ;;;###autoload
