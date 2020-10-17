@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.3.4-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.3.5-green.svg)]()
 [![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
 
 
@@ -197,6 +197,19 @@ Here is an example of configuration you can add to your `init.el`:
                                        nil)
 ```
 
+## Changelog
+
+### v.1.3.5
+
+**FEATURE**:
+- Add `ytdl-command` defcustom. (by Pierre Neidhardt)
+
+**INTERNAL**:
+- Replace ytdl-message-start by `ytdl--concat`. (by Pierre Neidhardt)
+
+**STYLE**:
+- Use `error` instead of `(concat ... "ERROR:" ...)`. (by Pierre Neidhardt)
+- Fix syntax and docstring typos. (by Pierre Neidhardt)
 
 
 
