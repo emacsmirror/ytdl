@@ -234,6 +234,11 @@ Keys are UUID.
   '()
   "List of marked items.")
 
+(defcustom ytdl-download-finished-hook nil
+  "Hook run when a file has finished downloading."
+  :type 'hook
+  :group 'ytdl)
+
 ;; Functions
 (defun ytdl--concat (&rest sequences)
   "Like `concat' but prefix the result with this package name."
@@ -576,7 +581,8 @@ UUID is the key of the list item in `ytdl--download-list'."
                                    (file-attributes
                                     filename))))
   (ytdl--eval-mode-line-string -1)
-  (ytdl--message "Video downloaded: " filename))
+  (ytdl--message "Video downloaded: " filename)
+  (run-hooks 'ytdl-download-finished-hook))
 
 
 (defun ytdl--get-args (&optional no-filename)
