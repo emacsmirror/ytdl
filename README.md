@@ -1,7 +1,7 @@
 # ytdl: An Emacs interface for youtube-dl
 
 [![language](https://img.shields.io/badge/language-elisp-green.svg)](https://www.gnu.org/software/emacs/manual/html_node/elisp/)
-[![version](https://img.shields.io/badge/version-1.3.5-green.svg)]()
+[![version](https://img.shields.io/badge/version-1.3.6-green.svg)]()
 [![MELPA](https://melpa.org/packages/ytdl-badge.svg)](https://melpa.org/#/ytdl)
 
 
@@ -198,6 +198,16 @@ Here is an example of configuration you can add to your `init.el`:
 ```
 
 ## Changelog
+
+### v.1.3.6
+
+
+**FEATURE**:
+- Add ytdl-download-finished-hook defcustom. (by Damien Cassou)
+
+**BUG**:
+- Show `ytdl-list` when launching a new download. (by Arnaud Hoffmann)
+- Remove `emulations` from keyword list. (by Arnaud Hoffmann)
 
 ### v.1.3.5
 
