@@ -557,7 +557,8 @@ DL-TYPE is the download type, see `ytdl-download-types'."
                                          :url url
                                          :process-id process-id)
              ytdl--download-list))
-  (ytdl--refresh-list))
+  (ytdl--refresh-list)
+  (ytdl-show-list))
 
 
 (defun ytdl--async-download-finished (filename uuid)
