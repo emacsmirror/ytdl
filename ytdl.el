@@ -736,7 +736,7 @@ destination folder and extra arguments, see
          (dl-type-name (nth 3 out)))
     (with-temp-buffer
       (call-process ytdl-command nil t nil
-                    "--dump-json" "--flat-playlist"
+                    "--dump-json" "--flat-playlist" "--no-warnings"
                     url)
       (goto-char (point-min))
       (if (search-forward-regexp "^ERROR" nil t)
